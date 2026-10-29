@@ -32,7 +32,7 @@
   window.HUB.forEach(d => {
     const list = [];
     d.g.forEach(([, items]) => items.forEach(it => { if (it[0] === 'f' && !FORM_NAMES[it[2]]) { FORM_NAMES[it[2]] = it[1]; list.push(it[2]); } }));
-    if (list.length) GROUPS.push({ name: d.name, color: d.c, forms: list });
+    if (list.length) GROUPS.push({ id: d.id, name: d.name, color: d.c, forms: list });
   });
 
   let me = null, summary = {}, state = { form: '', status: 'all', q: '', rows: [], total: 0, sel: null };
@@ -174,6 +174,7 @@
   }
   async function start() {
     me = await fetch('/api/admin/me').then(r => r.json());
+    try { const names = await fetch('/api/dept-names').then(r => r.json()); GROUPS.forEach(g => { if (names[g.id]) g.name = names[g.id]; }); } catch { }
     if (!me.signedIn) return showLogin();
     shell();
     $('#lbody').addEventListener('click', e => {

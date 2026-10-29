@@ -36,6 +36,8 @@
     inbox: 'M5.4 3h9.2c.9 0 1.6.6 1.9 1.4l1.4 5.3v4.8c0 1.4-1.1 2.5-2.5 2.5h-11A2.5 2.5 0 0 1 2 14.5V9.7l1.4-5.3C3.7 3.6 4.5 3 5.4 3Zm0 1a1 1 0 0 0-1 .7L3.2 9H7c.3 0 .5.2.5.5a2.5 2.5 0 0 0 5 0c0-.3.2-.5.5-.5h3.8l-1.2-4.3a1 1 0 0 0-1-.7H5.4ZM3 10v4.5c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5V10h-3.5a3.5 3.5 0 0 1-7 0H3Z',
     bolt: 'M7.4 2.3c.1-.2.3-.3.5-.3h5.6c.4 0 .6.4.5.7L12.4 7H15c.4 0 .7.5.4.8l-7.5 9.6c-.3.4-1 .1-.9-.4l1.2-5.5H5.5a.5.5 0 0 1-.5-.6l2.4-8.6ZM8.3 3 6.1 10.5h2.7c.3 0 .5.3.5.6l-.9 4.1L14 8H11.6a.5.5 0 0 1-.4-.7L12.7 3H8.3Z',
     leaf: 'M16.5 3.1c.3 0 .5.3.5.5 0 5.4-1.6 9-4 11.1A7.4 7.4 0 0 1 4.5 16l-.9 1.7a.5.5 0 0 1-.9-.4l.9-1.8C2.4 12.7 3 9.5 5.2 7.2 7.6 4.8 11.5 3.3 16.5 3.1Zm-.5 1c-4.5.3-8 1.7-10 3.8-1.9 2-2.4 4.7-1 7.1l.6-1.1C7 11 9.4 9 12.6 7.6a.5.5 0 0 1 .4.9C9.9 9.9 7.6 11.8 6 14.7l-.6 1.1c2.3 1 5 .6 7-1.1 2.1-1.8 3.5-5 3.6-10.6Z',
+    rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
+    undo: 'M4.5 3a.5.5 0 0 1 .5.5v3.3A7 7 0 1 1 3 10.5a.5.5 0 0 1 1 0 6 6 0 1 0 1.8-4.3H8.5a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5v-4c0-.3.2-.5.5-.5Z',
     eraser: 'M11.2 3.4a2 2 0 0 1 2.8 0l2.6 2.6a2 2 0 0 1 0 2.8L10.4 15H16.5a.5.5 0 0 1 0 1H8.1a2 2 0 0 1-1.5-.6L3.4 12.2a2 2 0 0 1 0-2.8l7.8-6Zm-2.5 4L4.1 10a1 1 0 0 0 0 1.4l3.2 3.2c.4.4 1 .4 1.4 0l3.6-3.6-3.6-3.6Z'
   };
   const icon = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true"><path d="${P[n]}"/></svg>`;
@@ -44,6 +46,8 @@
   // ---------- data ----------
   const DEPTS = window.HUB, HOME = window.HUB_HOME, QUICK = window.HUB_QUICK;
   const byDept = Object.fromEntries(DEPTS.map(d => [d.id, d]));
+  DEPTS.forEach(d => { d.orig = d.name; });
+  const applyNames = map => DEPTS.forEach(d => { d.name = (map && map[d.id]) || d.orig; });
   let FORMS = {};
   const ITEMS = [];
   DEPTS.forEach(d => d.g.forEach(([sec, items]) => items.forEach(it => {
@@ -77,14 +81,14 @@
   let activeFolder = 'home';
   function renderFolders(active) {
     activeFolder = active;
-    const f = (href, label, ic, n, cur, color) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}>${color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}</a>`;
+    const f = (href, label, ic, n, cur, color, dept) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}${dept ? ` data-dept="${dept}" title="${esc(label)} – right-click to rename"` : ''}>${color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}</a>`;
     folders.innerHTML =
       f('#home', 'Home', 'home', '', active === 'home') +
       f('#fav', 'Favourites', 'star', favs.length || '', active === 'fav') +
       `<div class="grp">Departments</div>` +
-      HOME.map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]), active === id, byDept[id].c)).join('') +
+      HOME.map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]), active === id, byDept[id].c, id)).join('') +
       `<div class="grp">More</div>` +
-      ['how-to-guides', 'essa-discount-card'].map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]) || '', active === id, byDept[id].c)).join('') +
+      ['how-to-guides', 'essa-discount-card'].map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]) || '', active === id, byDept[id].c, id)).join('') +
       `<div class="grp">Apps</div>` + `<a class="folder" href="/carbon/">${icon('leaf', 'i ic')}<span class="lbl">Carbon platform</span></a>` +
       `<div class="grp">Admin</div>` + `<a class="folder" href="/admin">${icon('inbox', 'i ic')}<span class="lbl">Submissions</span></a>`;
   }
@@ -203,6 +207,85 @@
     const f = e.target.closest('[data-filter]');
     if (f) { filter = f.dataset.filter; route(); }
   });
+
+  // ---------- folder right-click menu: open, rename, reset ----------
+  let menu = null, adminState = null;
+  async function isAdminUser() {
+    if (adminState === null) { try { adminState = (await (await fetch('/api/admin/me')).json()).signedIn; } catch { adminState = false; } }
+    return adminState;
+  }
+  function toast(html, kind = 'info') {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const t = h('div', { class: 'toast ' + kind, role: 'status', html });
+    t.append(h('button', { class: 'btn subtle', type: 'button', 'aria-label': 'Dismiss', html: icon('x', 'i16'), onclick: () => t.remove() }));
+    document.body.append(t);
+    setTimeout(() => t.remove(), 9000);
+  }
+  function closeMenu() { if (menu) { menu.remove(); menu = null; document.removeEventListener('pointerdown', outside, true); } }
+  function outside(e) { if (menu && !menu.contains(e.target)) closeMenu(); }
+  function openMenu(a, x, y) {
+    closeMenu();
+    const d = byDept[a.dataset.dept];
+    const item = (ic, label, fn) => h('button', { class: 'mi', type: 'button', role: 'menuitem', html: icon(ic) + `<span>${esc(label)}</span>`, onclick: () => { closeMenu(); fn(); } });
+    menu = h('div', { class: 'ctxmenu', role: 'menu', 'aria-label': d.name + ' options' },
+      item('folder', 'Open', () => { location.hash = '#d/' + d.id; }),
+      item('rename', 'Rename', () => startRename(d.id)),
+      d.name !== d.orig ? item('undo', `Reset name to “${d.orig}”`, () => saveName(d.id, '')) : null);
+    document.body.append(menu);
+    const r = a.getBoundingClientRect();
+    if (!x && !y) { x = r.left + 24; y = r.bottom; }
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(8, Math.min(x, innerWidth - mw - 8)) + 'px';
+    menu.style.top = Math.max(8, Math.min(y, innerHeight - mh - 8)) + 'px';
+    menu.querySelector('.mi').focus();
+    setTimeout(() => document.addEventListener('pointerdown', outside, true));
+    menu.addEventListener('keydown', e => {
+      const items = [...menu.querySelectorAll('.mi')], i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(); a.focus(); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      if (e.key === 'Tab') closeMenu();
+    });
+  }
+  async function startRename(id) {
+    if (!(await isAdminUser())) {
+      toast(`${icon('info')}<span>Renaming a folder changes it for everyone, so it needs the Submissions password. <a href="/admin">Sign in</a>, then come back and try again.</span>`);
+      return;
+    }
+    const a = folders.querySelector(`.folder[data-dept="${id}"]`); if (!a) return;
+    const lbl = a.querySelector('.lbl'), d = byDept[id];
+    const input = h('input', { class: 'rename', value: d.name, maxlength: '60', 'aria-label': 'New name for ' + d.name });
+    lbl.replaceWith(input); input.focus(); input.select();
+    let done = false;
+    const finish = save => { if (done) return; done = true; const v = input.value.trim(); if (save && v && v !== d.name) saveName(id, v === d.orig ? '' : v); else renderFolders(activeFolder); };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') { e.preventDefault(); finish(false); } e.stopPropagation(); });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+  }
+  async function saveName(id, name) {
+    try {
+      const r = await fetch('/api/admin/dept-names/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+      const out = await r.json().catch(() => ({}));
+      if (r.status === 401) { adminState = false; throw new Error(out.error || 'Sign in to Submissions to rename folders.'); }
+      if (!r.ok) throw new Error(out.error || 'The new name could not be saved.');
+      applyNames(out); route();
+      toast(`${icon('check')}<span>${name ? `Renamed to “${esc(name)}”.` : `Name reset to “${esc(byDept[id].orig)}”.`} Everyone will see this.</span>`, 'ok');
+    } catch (e) { renderFolders(activeFolder); toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); }
+  }
+  folders.addEventListener('contextmenu', e => {
+    const a = e.target.closest('.folder[data-dept]'); if (!a) return;
+    e.preventDefault(); openMenu(a, e.clientX, e.clientY);
+  });
+  // long-press on touch screens
+  let press = null, pressed = false;
+  folders.addEventListener('pointerdown', e => {
+    const a = e.target.closest('.folder[data-dept]'); if (!a || e.pointerType !== 'touch') return;
+    press = setTimeout(() => { pressed = true; openMenu(a, e.clientX, e.clientY); }, 550);
+  });
+  ['pointerup', 'pointercancel', 'pointermove'].forEach(t => folders.addEventListener(t, () => clearTimeout(press)));
+  folders.addEventListener('click', e => { if (pressed) { e.preventDefault(); pressed = false; } }, true);
+  addEventListener('resize', closeMenu); pane.addEventListener('scroll', closeMenu);
+  fetch('/api/dept-names').then(r => r.json()).then(m => { if (Object.keys(m).length) { applyNames(m); route(); } }).catch(() => { });
 
   // =====================================================================
   // Form renderer

@@ -2,7 +2,7 @@
    Layout: blue app bar, folder pane on the left, one rounded content pane on a grey canvas. */
 :root {
   --brand: #0F6CBD; --brand-hover: #115EA3; --brand-press: #0C3B5E; --brand-tint: #EBF3FC; --brand-tint-2: #CFE4FA; --brand-fg: #0F6CBD;
-  --bar: #0F6CBD; --bar-fg: #FFFFFF; --btn: #0F6CBD; --btn-hover: #115EA3; --btn-press: #0C3B5E;
+  --bar: #E3008C; --bar-fg: #FFFFFF; --btn: #0F6CBD; --btn-hover: #115EA3; --btn-press: #0C3B5E;
   --canvas: #F0F0F0; --pane: #FFFFFF; --pane-2: #FAFAFA; --hover: #F5F5F5; --press: #E0E0E0;
   --fg: #242424; --fg-2: #424242; --fg-3: #616161; --fg-4: #707070;
   --stroke: #E0E0E0; --stroke-2: #D1D1D1; --stroke-input: #D1D1D1; --stroke-under: #616161;
@@ -19,7 +19,7 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --brand: #479EF5; --brand-hover: #62ABF5; --brand-press: #2886DE; --brand-tint: #082338; --brand-tint-2: #0E4775; --brand-fg: #62ABF5;
-  --bar: #0F548C; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
+  --bar: #A3005F; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
   --canvas: #141414; --pane: #292929; --pane-2: #242424; --hover: #333333; --press: #3D3D3D;
   --fg: #FFFFFF; --fg-2: #E0E0E0; --fg-3: #ADADAD; --fg-4: #999999;
   --stroke: #3D3D3D; --stroke-2: #525252; --stroke-input: #525252; --stroke-under: #ADADAD;
@@ -29,7 +29,7 @@
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --brand: #479EF5; --brand-hover: #62ABF5; --brand-press: #2886DE; --brand-tint: #082338; --brand-tint-2: #0E4775; --brand-fg: #62ABF5;
-  --bar: #0F548C; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
+  --bar: #A3005F; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
   --canvas: #141414; --pane: #292929; --pane-2: #242424; --hover: #333333; --press: #3D3D3D;
   --fg: #FFFFFF; --fg-2: #E0E0E0; --fg-3: #ADADAD; --fg-4: #999999;
   --stroke: #3D3D3D; --stroke-2: #525252; --stroke-input: #525252; --stroke-under: #ADADAD;
@@ -263,3 +263,17 @@ input[type=date].ctl, input[type=datetime-local].ctl { max-width: 260px; }
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } .folders { transition: none; } }
+
+/* ---------- context menu, inline rename, toast ---------- */
+.ctxmenu { position: fixed; z-index: 50; min-width: 200px; max-width: 320px; background: var(--pane); border-radius: var(--r-sm); box-shadow: 0 8px 16px rgba(0,0,0,.14), 0 0 2px rgba(0,0,0,.12); padding: 4px; }
+.ctxmenu .mi { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.ctxmenu .mi span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctxmenu .mi svg { color: var(--fg-3); }
+.ctxmenu .mi:hover, .ctxmenu .mi:focus-visible { background: var(--hover); outline: none; }
+.folder input.rename { flex: 1; min-width: 0; height: 26px; border: 1px solid var(--brand); border-radius: var(--r-sm); padding: 0 6px; background: var(--pane); color: var(--fg); font: inherit; }
+.folder input.rename:focus { outline: none; box-shadow: inset 0 -2px 0 var(--brand); }
+.toast { position: fixed; z-index: 60; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: min(460px, calc(100vw - 32px)); display: flex; align-items: flex-start; gap: 10px; background: var(--pane); color: var(--fg); border-radius: var(--r-md); box-shadow: 0 8px 16px rgba(0,0,0,.14), 0 0 2px rgba(0,0,0,.12); padding: 12px 8px 12px 14px; }
+.toast > svg { margin-top: 1px; color: var(--brand-fg); }
+.toast.ok > svg { color: var(--success); } .toast.error > svg { color: var(--danger); }
+.toast span { flex: 1; }
+.toast .btn { min-width: 0; height: 24px; padding: 0 4px; }

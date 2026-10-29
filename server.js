@@ -203,6 +203,17 @@ async function route(req, res) {
     const days = 14;
     return json(res, 200, { ok: true }, { 'Set-Cookie': `wsh_admin=${encodeURIComponent(sign(String(Date.now() + days * 864e5)))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${days * 86400}${isSecure(req) ? '; Secure' : ''}` });
   }
+  // Department folder names (renamed from the hub's folder pane; shared by everyone)
+  if (p === '/api/dept-names' && m === 'GET') return json(res, 200, (await store.getSetting('deptNames')) || {}, { 'Cache-Control': 'no-cache' });
+  if ((mt = p.match(/^\/api\/admin\/dept-names\/([a-z0-9-]{1,60})$/)) && m === 'PUT') {
+    if (!isAdmin(req)) return json(res, 401, { error: 'Sign in to Submissions to rename folders.' });
+    const name = String((await readJson(req)).name ?? '').replace(/\s+/g, ' ').trim();
+    if (name.length > 60) return json(res, 400, { error: 'Keep folder names to 60 characters or fewer.' });
+    const names = (await store.getSetting('deptNames')) || {};
+    if (name) names[mt[1]] = name; else delete names[mt[1]];   // empty name = back to the original
+    await store.setSetting('deptNames', names);
+    return json(res, 200, names);
+  }
   if (p === '/api/admin/logout' && m === 'POST') return json(res, 200, { ok: true }, { 'Set-Cookie': 'wsh_admin=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0' });
   if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(req), passwordSet: !!process.env.ADMIN_PASSWORD, storage: store.kind, email: !!process.env.SMTP_HOST });
 

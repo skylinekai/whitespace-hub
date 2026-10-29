@@ -51,6 +51,8 @@ Each email shows every answer and attaches the uploaded files and signature (whe
 
 ## Changing content
 
+- **Department folder names:** right-click a department in the hub's folder pane (or long-press on a phone) and choose **Rename**. You need to be signed in to Submissions, and the new name shows for everyone. **Reset name** puts the original back.
+
 - **Hub sections, documents and links:** `public/hub-data.js`. Each item is one line:
   `['f', 'Title', '<form id>']` form · `['d', 'Title', '~File.pdf']` document · `['l', 'Title', 'https://…']` link · `['n', '<p>Text</p>']` note.
 - **Form questions:** `public/forms.json`. Each form has `fields` (id, type, label, required, options) and `rules` (show or hide fields based on answers). Changing a label or adding an option is a one-line edit. Old submissions keep the questions they were sent with.
