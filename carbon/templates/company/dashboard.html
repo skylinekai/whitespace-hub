@@ -1,0 +1,126 @@
+{% extends "base.html" %}{% block title %}Overview{% endblock %}
+{% block content %}
+{% set p = s.period %}
+<div class="page-head">
+  <div>
+    <h1>{{ org_name }} carbon footprint</h1>
+    <p>{{ p.name }} · {{ p.start_date }} to {{ p.end_date }} · {{ s.activity_count }} activity records{% if s.stands %} · {{ s.stands|length }} stands included{% endif %}</p>
+  </div>
+  <div class="actions-row">
+    <a class="btn" href="{{ url_for('reports.inventory') }}">GHG inventory report</a>
+    <a class="btn primary" href="{{ url_for('reports.secr') }}">SECR report</a>
+  </div>
+</div>
+
+{% if not s.total %}
+<div class="card empty">
+  <h2>No emissions recorded for {{ p.name }} yet</h2>
+  <p>Add activity data (energy bills, fuel, travel, waste, purchases) or import a spreadsheet.</p>
+  {% if can_edit %}<div class="actions-row" style="justify-content:center">
+    <a class="btn primary" href="{{ url_for('company.activity_form') }}">Add activity</a>
+    <a class="btn" href="{{ url_for('company.import_data') }}">Import a file</a></div>{% endif %}
+</div>
+{% else %}
+
+<div class="kpis">
+  <div class="kpi hero">
+    <div class="label">Total footprint</div>
+    <div class="value">{{ s.total|t }}<small>tCO₂e</small></div>
+    <div class="sub">
+      {% if ps and ps.total %}{% set d = (s.total - ps.total) / ps.total * 100 %}
+        <span class="{{ 'delta-down' if d < 0 else 'delta-up' }}">{{ '▼' if d < 0 else '▲' }} {{ '%.1f'|format(d|abs) }}%</span> vs {{ prev.name }}
+      {% else %}Location-based Scope 2{% endif %}
+    </div>
+  </div>
+  {% for sc in [1,2,3] %}
+  <div class="kpi">
+    <div class="label"><span class="badge s{{ sc }}">Scope {{ sc }}</span></div>
+    <div class="value">{{ s.by_scope[sc]|t }}<small>t</small></div>
+    <div class="sub">{{ s.by_scope[sc]|pct(s.total) }} of total{% if sc == 2 %} · market-based {{ s.scope2_market|t }} t{% endif %}</div>
+  </div>
+  {% endfor %}
+  <div class="kpi">
+    <div class="label">Intensity</div>
+    <div class="value">{{ s.per_m_revenue|num(1) }}<small>t / £m</small></div>
+    <div class="sub">{% if s.per_fte %}{{ s.per_fte|num(1) }} t per employee{% else %}Add revenue &amp; FTE to the period{% endif %}</div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-head"><h2>Emissions by scope</h2></div>
+    <div class="chart-box short"><canvas id="scopeChart" aria-label="Emissions by scope"></canvas></div>
+    <div class="scopebar">{% for sc in [1,2,3] %}<span style="width:{{ (s.by_scope[sc] / s.total * 100) if s.total else 0 }}%;background:{{ SCOPE_COLOURS[sc] }}"></span>{% endfor %}</div>
+    <div class="legend">{% for sc in [1,2,3] %}<span><i style="background:{{ SCOPE_COLOURS[sc] }}"></i>Scope {{ sc }} · {{ s.by_scope[sc]|t }} t</span>{% endfor %}</div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Where emissions come from</h2><a class="small" href="{{ url_for('company.activities') }}">All data →</a></div>
+    <div class="chart-box" style="height:{{ [chart.cats|length * 30 + 40, 220]|max }}px"><canvas id="catChart" aria-label="Emissions by category"></canvas></div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-head"><h2>Monthly emissions</h2></div>
+    <div class="chart-box short"><canvas id="monthChart" aria-label="Monthly emissions"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Reduction target</h2><a class="small" href="{{ url_for('company.targets') }}">Targets &amp; actions →</a></div>
+    {% if traj %}
+      <p class="small muted">{{ target.name }}: −{{ target.reduction_pct|num(0) }}% {{ 'Scope 1+2' if target.coverage == 's12' else 'Scope 1–3' }} by {{ target.target_year }} from {{ traj.base_year }} ({{ traj.base_t|num(1) }} → {{ traj.target_t|num(1) }} t)</p>
+      <div class="chart-box short"><canvas id="trajChart" aria-label="Target trajectory"></canvas></div>
+    {% else %}
+      <div class="empty" style="padding:30px 10px"><p>Set a base year and a science-based reduction target to track progress.</p>
+      {% if can_edit %}<a class="btn" href="{{ url_for('company.targets') }}">Set a target</a>{% endif %}</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card tight">
+    <div style="padding:20px 20px 8px"><h2>Largest sources</h2></div>
+    <table class="data">
+      <thead><tr><th>Source</th><th>Category</th><th class="num">tCO₂e</th></tr></thead>
+      <tbody>
+      {% for r in s.top %}<tr>
+        {% if r.category == 'stand' %}
+        <td><a href="{{ url_for('stands.detail', sid=r.stand_id) }}">{{ r.name }}</a><div class="small muted">Stand · opened {{ r.open_date }}</div></td>
+        <td><span class="badge s3">S3</span> <span class="small">Stand project</span></td>
+        {% else %}
+        <td>{{ r.name }}<div class="small muted">{% if r.site %}{{ r.site }} · {% endif %}{{ r.count }} record{{ 's' if r.count != 1 }}</div></td>
+        <td><span class="badge s{{ CATEGORIES[r.category][0] }}">S{{ CATEGORIES[r.category][0] }}</span> <span class="small">{{ CATEGORIES[r.category][1] }}</span></td>
+        {% endif %}
+        <td class="num">{{ r.kg|t }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Biggest reduction opportunities</h2></div>
+    {% if recs %}
+    <div class="recs">
+      {% for r in recs[:4] %}
+      <div class="rec">
+        <div><h3>{{ r.title }}</h3><p>{{ r.text }}</p></div>
+        <div class="saving">~{{ r.saving|t }} t<small>per year</small></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p class="muted">Add more data to see tailored suggestions.</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if s.total %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const c = {{ chart|tojson }};
+  SW.doughnut("scopeChart", ["Scope 1", "Scope 2", "Scope 3"], c.scopes, [SW.colours.s1, SW.colours.s2, SW.colours.s3]);
+  SW.hbar("catChart", c.cats.map(x => x[0]), c.cats.map(x => x[1]), c.cats.map(x => SW.colours["s" + x[2]]));
+  SW.columns("monthChart", c.months, c.month_vals);
+  SW.trajectory("trajChart", c.traj);
+});
+</script>
+{% endif %}
+{% endblock %}

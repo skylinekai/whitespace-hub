@@ -6,12 +6,16 @@ databases:
 services:
   - type: web
     name: whitespace-hub
-    runtime: node
-    plan: starter
-    buildCommand: npm install
-    startCommand: npm start
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter            # a persistent disk needs a paid instance
     healthCheckPath: /healthz
+    disk:
+      name: whitespace-hub-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
+      # Hub
       - key: DATABASE_URL
         fromDatabase:
           name: whitespace-hub-db
@@ -33,4 +37,11 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: MAIL_FROM
+        sync: false
+      # Carbon platform
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/swcarbon.db
+      - key: ANTHROPIC_API_KEY
         sync: false

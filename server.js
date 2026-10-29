@@ -155,12 +155,42 @@ function serveStatic(req, res, urlPath) {
   });
 }
 
+// ---------- carbon platform (Python app running alongside, mounted at /carbon) ----------
+const CARBON = new URL(process.env.CARBON_URL || 'http://127.0.0.1:5001');
+function proxyCarbon(req, res) {
+  const headers = Object.assign({}, req.headers, {
+    'x-forwarded-for': clientIp(req),
+    'x-forwarded-proto': isSecure(req) ? 'https' : 'http',
+    'x-forwarded-host': req.headers.host || ''
+  });
+  const up = http.request({ host: CARBON.hostname, port: CARBON.port, method: req.method, path: req.url, headers }, r => {
+    res.writeHead(r.statusCode, r.headers);
+    r.pipe(res);
+  });
+  up.setTimeout(200e3, () => up.destroy(new Error('timeout')));
+  up.on('error', e => {
+    console.error('Carbon platform unavailable:', e.message);
+    if (res.headersSent) return res.destroy();
+    res.writeHead(502, Object.assign({}, SEC_HEADERS, { 'Content-Type': 'text/html; charset=utf-8' }));
+    res.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carbon is starting</title>
+      <body style="font-family:'Segoe UI',Arial,sans-serif;background:#F0F0F0;margin:0;display:grid;place-items:center;min-height:100vh;color:#242424">
+      <div style="background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.14);padding:28px;max-width:420px;margin:16px">
+      <h1 style="font-size:20px;margin:0 0 8px">The carbon platform isn’t available right now</h1>
+      <p style="color:#616161;margin:0 0 16px">It may still be starting up. Wait a few seconds and try again.</p>
+      <a href="" style="display:inline-block;background:#0F6CBD;color:#fff;padding:7px 14px;border-radius:4px;text-decoration:none;font-weight:600">Try again</a>
+      <a href="/" style="margin-left:12px;color:#0F6CBD">Back to the hub</a></div></body>`);
+  });
+  req.pipe(up);
+}
+
 // ---------- router ----------
 async function route(req, res) {
   const url = new URL(req.url, 'http://local');
   const p = url.pathname, m = req.method;
   let mt;
   if (p === '/healthz') return send(res, 200, 'ok');
+  if (p === '/carbon') return send(res, 301, '', { Location: '/carbon/' });
+  if (p.startsWith('/carbon/')) return proxyCarbon(req, res);
   if ((mt = p.match(/^\/api\/forms\/(\d+)\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1]);
 
   if (p === '/api/admin/login' && m === 'POST') {

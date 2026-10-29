@@ -1,0 +1,85 @@
+{% extends "base.html" %}{% block title %}Targets & actions{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Targets &amp; action plan</h1><p>Set a reduction target against a base year, then plan and track the actions that get you there.</p></div></div>
+
+{% if traj %}
+<div class="kpis">
+  <div class="kpi"><div class="label">Base year {{ traj.base_year }}</div><div class="value">{{ traj.base_t|num(1) }}<small>t</small></div><div class="sub">{{ 'Scope 1 + 2' if target.coverage == 's12' else 'Scope 1, 2 + 3' }}</div></div>
+  <div class="kpi"><div class="label">Target {{ target.target_year }}</div><div class="value">{{ traj.target_t|num(1) }}<small>t</small></div><div class="sub">−{{ target.reduction_pct|num(0) }}%</div></div>
+  <div class="kpi"><div class="label">Latest</div><div class="value">{{ traj.latest_t|num(1) }}<small>t</small></div>
+    <div class="sub">{% if traj.base_t %}{% set chg = (traj.latest_t - traj.base_t) / traj.base_t * 100 %}<span class="{{ 'delta-down' if chg < 0 else 'delta-up' }}">{{ '%+.1f'|format(chg) }}%</span> vs base{% endif %}</div></div>
+  <div class="kpi hero"><div class="label">With planned actions</div><div class="value">{{ traj.with_actions_t|num(1) }}<small>t</small></div>
+    <div class="sub">{{ traj.planned_t|num(1) }} t from {{ actions|rejectattr('status','equalto','idea')|list|length }} actions{% if traj.with_actions_t <= traj.target_t %} · on track{% else %} · {{ (traj.with_actions_t - traj.target_t)|num(1) }} t gap{% endif %}</div></div>
+</div>
+{% endif %}
+
+<div class="grid-2" style="grid-template-columns:1.5fr 1fr;margin-bottom:20px">
+  <div class="card">
+    <h2>Trajectory</h2>
+    {% if traj %}<div class="chart-box"><canvas id="trajChart" aria-label="Target trajectory"></canvas></div>
+    {% else %}<div class="empty">Set a target to see your pathway.</div>{% endif %}
+  </div>
+  <form class="card" method="post" action="{{ url_for('company.target_save') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">{% if target %}<input type="hidden" name="id" value="{{ target.id }}">{% endif %}
+    <h2>Target</h2>
+    <div class="fields" style="grid-template-columns:1fr 1fr">
+      <div class="field full"><label>Name</label><input type="text" name="name" value="{{ target.name if target else 'Near-term reduction target' }}" {% if not can_edit %}disabled{% endif %}></div>
+      <div class="field"><label>Base period</label><select name="base_period_id" {% if not can_edit %}disabled{% endif %}>
+        {% for p in periods %}<option value="{{ p.id }}" {% if target and target.base_period_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Target year</label><input type="number" name="target_year" value="{{ target.target_year if target else 2030 }}" {% if not can_edit %}disabled{% endif %}></div>
+      <div class="field"><label>Reduction %</label><input type="text" inputmode="decimal" name="reduction_pct" value="{{ target.reduction_pct|num(1) if target else 42 }}" {% if not can_edit %}disabled{% endif %}></div>
+      <div class="field"><label>Covers</label><select name="coverage" {% if not can_edit %}disabled{% endif %}>
+        <option value="s12" {% if target and target.coverage == 's12' %}selected{% endif %}>Scope 1 + 2</option>
+        <option value="s123" {% if target and target.coverage == 's123' %}selected{% endif %}>Scope 1, 2 + 3</option></select></div>
+      <div class="field full"><span class="hint">For reference: the SBTi near-term 1.5°C pathway is a 4.2% absolute reduction per year for Scope 1+2 — about 42% over 10 years. Small businesses can use the SBTi SME route.</span></div>
+    </div>
+    {% if can_edit %}<div class="form-foot"><button class="btn primary">Save target</button></div>{% endif %}
+  </form>
+</div>
+
+{% if recs %}
+<div class="card">
+  <h2>Suggested actions for {{ current_period.name }}</h2>
+  <div class="recs">
+  {% for r in recs %}
+    <div class="rec">
+      <div><h3>{{ r.title }}</h3><p>{{ r.text }}</p></div>
+      <div class="saving">~{{ r.saving|t }} t<small>per year</small>
+        {% if can_edit %}<form method="post" action="{{ url_for('company.action_save') }}" style="margin-top:6px">
+          <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="title" value="{{ r.title }}">
+          <input type="hidden" name="description" value="{{ r.text }}"><input type="hidden" name="category" value="{{ r.category }}">
+          <input type="hidden" name="est_reduction_t" value="{{ '%.2f'|format(r.saving / 1000) }}"><input type="hidden" name="status" value="idea">
+          <button class="btn small">Add to plan</button></form>{% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card tight table-wrap" id="actions">
+  <div style="padding:20px 20px 8px" class="card-head"><h2>Action plan</h2>
+    {% if can_edit %}<a class="btn small primary" href="#" data-toggle="newAction">+ Add action</a>{% endif %}</div>
+  <table class="data">
+    <thead><tr><th>Action</th><th>Owner</th><th>Due</th><th>Status</th><th class="num">Est. saving tCO₂e/yr</th><th class="num">Cost £</th><th></th></tr></thead>
+    <tbody>
+    <tr id="newAction" class="edit-row" hidden><td colspan="7">{% set a = none %}{% include "company/_action_form.html" %}</td></tr>
+    {% for a in actions %}
+      <tr>
+        <td><strong>{{ a.title }}</strong>{% if a.category %} <span class="small muted">· {{ CATEGORIES[a.category][1] if a.category in CATEGORIES else a.category }}</span>{% endif %}
+          {% if a.description %}<div class="small muted">{{ a.description }}</div>{% endif %}</td>
+        <td class="small">{{ a.owner or '—' }}</td><td class="small">{{ a.due_date or '—' }}</td>
+        <td><span class="badge {{ {'done':'good','in_progress':'s2','planned':'','idea':'grey'}[a.status] }}">{{ a.status.replace('_',' ') }}</span></td>
+        <td class="num">{{ a.est_reduction_t|num(1) }}</td><td class="num">{{ a.cost_gbp|num(0) }}</td>
+        <td>{% if can_edit %}<div class="row-actions"><a class="btn small" href="#" data-toggle="edit{{ a.id }}">Edit</a>
+          <form method="post" action="{{ url_for('company.action_delete', aid=a.id) }}" data-confirm="Delete this action?"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn small danger">Delete</button></form></div>{% endif %}</td>
+      </tr>
+      <tr id="edit{{ a.id }}" class="edit-row" hidden><td colspan="7">{% include "company/_action_form.html" %}</td></tr>
+    {% else %}<tr><td colspan="7"><div class="empty">No actions yet. Add one, or use a suggestion above.</div></td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>document.addEventListener("DOMContentLoaded", () => SW.trajectory("trajChart", {{ traj|tojson }}));</script>
+{% endblock %}

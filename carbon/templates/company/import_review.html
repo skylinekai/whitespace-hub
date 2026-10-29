@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block title %}Review import{% endblock %}
+{% block content %}
+{% set good = rows|selectattr('ok')|list %}
+<div class="page-head"><div><h1>Review import</h1>
+  <p>{{ filename }} · {{ rows|length }} rows found · {{ good|length }} ready to import into {{ period.name }}</p></div></div>
+{% if mode == 'ai' %}<div class="note warn" style="margin-bottom:16px">These rows were read by AI. Check quantities, units and dates against the source document before importing.</div>{% endif %}
+<form method="post" action="{{ url_for('company.import_confirm') }}">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input type="hidden" name="rows_json" value="{{ rows_json }}">
+  <div class="card tight table-wrap">
+    <table class="data">
+      <thead><tr><th><input type="checkbox" checked onclick="document.querySelectorAll('.keep').forEach(c=>{if(!c.disabled)c.checked=this.checked})" aria-label="Select all"></th>
+        <th>#</th><th>Date</th><th>Factor</th><th class="num">Quantity</th><th>Description</th><th>Site</th><th>Issues</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><input class="keep" type="checkbox" name="keep" value="{{ r.row }}" {% if r.ok %}checked{% else %}disabled{% endif %} aria-label="Import row {{ r.row }}"></td>
+        <td class="small muted">{{ r.row }}</td>
+        <td class="small">{{ r.date or '—' }}</td>
+        <td>{{ r.factor_name or r.factor_code }}<div class="small muted">{{ r.factor_code }}{% if r.confidence %} · {{ r.confidence }} confidence{% endif %}</div></td>
+        <td class="num">{{ r.quantity|num(2) if r.quantity is not none else '—' }} <span class="small muted">{{ r.unit }}</span></td>
+        <td class="small">{{ r.description }}{% if r.evidence %}<div class="muted">{{ r.evidence }}</div>{% endif %}</td>
+        <td class="small">{{ r.site or '—' }}</td>
+        <td class="small">{% for e in r.errors %}<div class="{{ 'muted' if r.ok else '' }}" style="color:{{ '#a8661b' if r.ok else '#b33a3a' }}">{{ e }}</div>{% else %}<span class="badge good">OK</span>{% endfor %}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="form-foot">
+    <button class="btn primary">Import selected rows</button>
+    <a href="{{ url_for('company.import_data') }}">Cancel</a>
+    <span class="small muted">Rows with a red issue can't be imported — fix them in the file and upload again.</span>
+  </div>
+</form>
+{% endblock %}

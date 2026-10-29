@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}Reporting periods{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Reporting periods</h1><p>Usually one per financial year. Lock a period once it has been reported.</p></div>
+  {% if can_edit %}<a class="btn primary" href="{{ url_for('company.period_form') }}">+ New period</a>{% endif %}</div>
+<div class="card tight table-wrap">
+  <table class="data">
+    <thead><tr><th>Period</th><th>Dates</th><th class="num">Scope 1</th><th class="num">Scope 2</th><th class="num">Scope 3</th><th class="num">Total tCO₂e</th><th class="num">t / £m</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}{% set p = r.p %}
+      <tr>
+        <td><strong>{{ p.name }}</strong> {% if p.locked %}<span class="badge warn">Locked</span>{% endif %}
+          {% if not p.include_stands %}<div class="small muted">Stand footprints excluded</div>{% endif %}</td>
+        <td class="small">{{ p.start_date }} → {{ p.end_date }}</td>
+        <td class="num">{{ r.s.by_scope[1]|t }}</td><td class="num">{{ r.s.by_scope[2]|t }}</td><td class="num">{{ r.s.by_scope[3]|t }}</td>
+        <td class="num"><strong>{{ r.s.total|t }}</strong></td>
+        <td class="num">{{ r.s.per_m_revenue|num(1) }}</td>
+        <td><div class="row-actions">
+          {% if can_edit %}<a class="btn small" href="{{ url_for('company.period_form', pid=p.id) }}">Edit</a>{% endif %}
+          {% if user.role == 'admin' %}
+          <form method="post" action="{{ url_for('company.period_refresh', pid=p.id) }}" data-confirm="Recalculate every activity in {{ p.name }} with the current emission factor library?"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn small" {% if p.locked %}disabled{% endif %}>Re-apply factors</button></form>
+          <form method="post" action="{{ url_for('company.period_delete', pid=p.id) }}" data-confirm="Delete {{ p.name }} and ALL its activity data? This can't be undone."><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn small danger">Delete</button></form>
+          {% endif %}
+        </div></td>
+      </tr>
+    {% else %}<tr><td colspan="8"><div class="empty">No periods yet.</div></td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

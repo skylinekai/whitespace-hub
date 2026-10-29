@@ -1,0 +1,95 @@
+{% extends "base.html" %}{% block title %}{{ 'Edit' if a else 'Add' }} activity{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Edit activity' if a else 'Add activity' }}</h1><p>{{ period.name }} ({{ period.start_date }} to {{ period.end_date }})</p></div></div>
+<form method="post" class="card" style="max-width:860px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="fields">
+    <div class="field full">
+      <label for="factor">What was used?</label>
+      <select id="factor" name="factor_id" required>
+        <option value="">Choose an emission factor…</option>
+        {% for kind, label in KIND_LABELS.items() %}
+          {% set fs = factors|selectattr('kind', 'equalto', kind)|list %}
+          {% if fs %}<optgroup label="{{ label }}">
+            {% for f in fs %}<option value="{{ f.id }}" {% if a and a.factor_id == f.id %}selected{% endif %}>{{ f.name }} — per {{ f.unit }}</option>{% endfor %}
+          </optgroup>{% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="qty">Quantity <span id="unit" class="muted"></span></label>
+      <input id="qty" type="text" inputmode="decimal" name="quantity" required value="{{ a.quantity if a else '' }}">
+    </div>
+    <div class="field">
+      <label for="date">Date</label>
+      <input id="date" type="date" name="activity_date" min="{{ period.start_date }}" max="{{ period.end_date }}" value="{{ a.activity_date if a and a.activity_date else '' }}">
+      <span class="hint">Bill or invoice date. Used for monthly trends.</span>
+    </div>
+    <div class="field">
+      <label for="cat">GHG category</label>
+      <select id="cat" name="category">
+        {% for k, v in CATEGORIES.items() %}{% if k != 's3_c3_fuel_energy' %}<option value="{{ k }}" {% if a and a.category == k %}selected{% endif %}>Scope {{ v[0] }} · {{ v[1] }}</option>{% endif %}{% endfor %}
+      </select>
+      <span class="hint" id="catHint"></span>
+    </div>
+    <div class="field">
+      <label for="site">Site</label>
+      <select id="site" name="site_id"><option value="">— Not site specific —</option>
+        {% for s in sites %}<option value="{{ s.id }}" {% if a and a.site_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field full">
+      <label for="desc">Description</label>
+      <input id="desc" type="text" name="description" placeholder="e.g. Workshop electricity — Q1" value="{{ a.description if a else '' }}">
+    </div>
+    <div class="field">
+      <label for="dq">Data quality</label>
+      <select id="dq" name="data_quality">
+        {% for v, l in [('actual','Actual (meter, bill, receipt)'),('estimated','Estimated'),('spend','Spend-based')] %}<option value="{{ v }}" {% if a and a.data_quality == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="ev">Evidence reference</label>
+      <input id="ev" type="text" name="evidence" placeholder="Supplier, invoice number, file location" value="{{ a.evidence if a and a.evidence else '' }}">
+    </div>
+    <div class="field" id="renewWrap" hidden>
+      <span class="label-text">Tariff</span>
+      <label class="check"><input type="checkbox" name="renewable" value="1" {% if a and a.renewable %}checked{% endif %}> Renewable tariff backed by REGOs</label>
+      <span class="hint">Sets market-based Scope 2 to zero for this line.</span>
+    </div>
+  </div>
+  <div class="note" id="preview" style="margin-top:18px" hidden></div>
+  <div class="form-foot">
+    <button class="btn primary">Save</button>
+    {% if not a %}<button class="btn" name="again" value="1">Save and add another</button>{% endif %}
+    <a href="{{ url_for('company.activities') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const F = {{ factors_json|safe }};
+  const sel = document.getElementById("factor"), qty = document.getElementById("qty"), cat = document.getElementById("cat");
+  const unit = document.getElementById("unit"), prev = document.getElementById("preview"), renew = document.getElementById("renewWrap");
+  const isEdit = {{ 'true' if a else 'false' }};
+  let first = true;
+  function update() {
+    const f = F[sel.value];
+    if (!f) { unit.textContent = ""; prev.hidden = true; renew.hidden = true; return; }
+    unit.textContent = "(" + f.unit + ")";
+    if (!(isEdit && first)) cat.value = f.cat;
+    first = false;
+    renew.hidden = !(f.kind === "electricity" || f.cat === "s2_electricity");
+    const q = parseFloat((qty.value || "").replace(/,/g, ""));
+    if (!isNaN(q)) {
+      const direct = q * f.kg, up = q * f.up;
+      prev.hidden = false;
+      prev.innerHTML = `<strong>${SW.fmt((direct + up) / 1000, 3)} tCO₂e</strong> — ${SW.fmt(direct, 1)} kg direct` +
+        (up ? ` + ${SW.fmt(up, 1)} kg upstream (Scope 3 Cat 3)` : "") + ` at ${f.kg} kgCO₂e per ${f.unit}`;
+    } else prev.hidden = true;
+  }
+  sel.addEventListener("change", update); qty.addEventListener("input", update); update();
+});
+</script>
+{% endblock %}

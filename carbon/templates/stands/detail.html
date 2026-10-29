@@ -1,0 +1,114 @@
+{% extends "base.html" %}{% block title %}{{ s.client }} — {{ s.show_name }}{% endblock %}
+{% macro item_form(section, kinds, it=None) %}
+<form method="post" class="item-form js-item" action="{{ url_for('stands.item_save', sid=s.id, iid=it.item.id) if it else url_for('stands.item_save', sid=s.id) }}">
+  <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="section" value="{{ section }}">
+  <div class="field"><label>Emission factor</label>
+    <select name="factor_id" required class="js-factor"><option value="">Choose…</option>
+      {% for kind in kinds %}{% set fs = factors|selectattr('kind','equalto',kind)|list %}{% if fs %}
+        <optgroup label="{{ KIND_LABELS[kind] }}">{% for f in fs %}<option value="{{ f.id }}" {% if it and it.item.factor_id == f.id %}selected{% endif %}>{{ f.name }} (per {{ f.unit }})</option>{% endfor %}</optgroup>
+      {% endif %}{% endfor %}
+    </select></div>
+  <div class="field"><label>Description</label><input type="text" name="description" value="{{ it.item.description if it and it.item.description else '' }}"></div>
+  <div class="field"><label class="js-qlabel">Quantity</label><input type="text" inputmode="decimal" name="quantity" required value="{{ it.item.quantity|num(3)|replace(',','') if it else '' }}"></div>
+  <div class="field"><label class="js-mlabel">Multiplier</label><input type="text" inputmode="decimal" name="multiplier" value="{{ it.item.multiplier|num(2)|replace(',','') if it else 1 }}"></div>
+  {% if section == 'materials' %}
+  <div class="field"><label title="Spread the material's footprint over the number of shows it will be used for">Shows used</label><input type="text" inputmode="decimal" name="uses" value="{{ it.item.uses|num(0) if it else 1 }}"></div>
+  <div class="field"><label>After the show</label><select name="eol">
+    <option value="none" {% if it and it.item.eol == 'none' %}selected{% endif %}>Not counted</option>
+    {% for k, v in eol_routes.items() %}<option value="{{ k }}" {% if it and it.item.eol == k %}selected{% endif %}>{{ v[0] }}</option>{% endfor %}</select></div>
+  {% else %}<input type="hidden" name="uses" value="1"><div></div><div></div>{% endif %}
+  <div class="field"><button class="btn small primary">{{ 'Save' if it else 'Add' }}</button></div>
+</form>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ s.client }} — {{ s.show_name }}</h1>
+    <p>{% if s.ref %}{{ s.ref }} · {% endif %}{{ s.venue or 'Venue tbc' }}{% if s.city %}, {{ s.city }}{% endif %} · {{ s.open_date or 'date tbc' }} · {{ s.size_m2|num(0) }} m²
+      · <span class="badge {{ {'estimate':'grey','built':'s2','final':'good'}[s.status] }}">{{ s.status }}</span></p></div>
+  <div class="actions-row">
+    {% if can_edit %}
+    <a class="btn" href="{{ url_for('stands.form', sid=s.id) }}">Edit details</a>
+    <form method="post" action="{{ url_for('stands.duplicate', sid=s.id) }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn">Duplicate</button></form>
+    <form method="post" action="{{ url_for('stands.delete', sid=s.id) }}" data-confirm="Delete this stand footprint?"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn danger">Delete</button></form>
+    {% endif %}
+    <a class="btn primary" href="{{ url_for('stands.report', sid=s.id) }}">Client report</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi hero"><div class="label">Stand footprint</div><div class="value">{{ ss.total|t }}<small>tCO₂e</small></div><div class="sub">{{ ss.total|num(0) }} kgCO₂e</div></div>
+  <div class="kpi"><div class="label">Per m²</div><div class="value">{{ ss.per_m2|num(0) }}<small>kg</small></div><div class="sub">Compare across stands</div></div>
+  <div class="kpi"><div class="label">Materials on stand</div><div class="value">{{ (ss.material_mass / 1000)|num(1) }}<small>t</small></div><div class="sub">Where weight is known</div></div>
+  <div class="kpi"><div class="label">Single-use share</div><div class="value">{{ ss.single_use_kg|pct(ss.total) }}</div><div class="sub">Materials used for one show</div></div>
+</div>
+
+{% if ss.total %}
+<div class="grid-2" style="grid-template-columns:1fr 1.4fr;margin-bottom:20px">
+  <div class="card"><h2>Breakdown</h2>
+    <div class="chart-box short"><canvas id="secChart" aria-label="Stand footprint breakdown"></canvas></div>
+    <table class="data" style="margin-top:12px">
+      {% for k, v in ss.by_section.items() %}<tr><td>{{ STAND_SECTIONS[k][0] }}</td><td class="num">{{ v|num(0) }} kg</td><td class="num muted">{{ v|pct(ss.total) }}</td></tr>{% endfor %}
+      <tr><td>End of life</td><td class="num">{{ ss.eol_total|num(0) }} kg</td><td class="num muted">{{ ss.eol_total|pct(ss.total) }}</td></tr>
+    </table>
+  </div>
+  <div class="card"><h2>How to cut this stand's footprint</h2>
+    {% if recs %}<div class="recs">{% for r in recs %}
+      <div class="rec"><div><h3>{{ r.title }}</h3><p>{{ r.text }}</p></div>
+        {% if r.saving %}<div class="saving">~{{ r.saving|num(0) }} kg<small>{{ r.saving|pct(ss.total) }} of stand</small></div>{% endif %}</div>
+    {% endfor %}</div>{% else %}<p class="muted">No obvious quick wins — this is already a low-impact build.</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% for key, sec in STAND_SECTIONS.items() %}{% set label = sec[0] %}{% set kinds = sec[1] %}
+<div class="card section-card" id="{{ key }}">
+  <h2>{{ label }} <span class="sub">{{ ss.by_section[key]|num(0) }} kgCO₂e{% if key == 'materials' and ss.eol_total %} + {{ ss.eol_total|num(0) }} kg end of life{% endif %}</span></h2>
+  {% set items = ss['items']|selectattr('item.section','equalto',key)|list %}
+  {% if items %}
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Item</th><th class="num">Quantity</th><th class="num">× </th>{% if key == 'materials' %}<th class="num">Shows</th><th>After show</th>{% endif %}<th class="num">kgCO₂e</th><th></th></tr></thead>
+    <tbody>
+    {% for it in items %}{% set i = it.item %}
+      <tr>
+        <td>{{ i.description or i.ef_name }}<div class="small muted">{{ i.ef_name }} · {{ i.ef_kg|num(3) }} kg/{{ i.ef_unit }}</div></td>
+        <td class="num">{{ i.quantity|num(1 if i.quantity < 100 else 0) }} <span class="small muted">{{ i.ef_unit }}</span></td>
+        <td class="num">{{ i.multiplier|num(0) if i.multiplier == i.multiplier|int else i.multiplier|num(2) }}</td>
+        {% if key == 'materials' %}<td class="num">{{ i.uses|num(0) }}</td><td class="small">{{ eol_routes[i.eol][0] if i.eol in eol_routes else '—' }}{% if it.eol %} <span class="muted">({{ it.eol|num(0) }} kg)</span>{% endif %}</td>{% endif %}
+        <td class="num"><strong>{{ it.total|num(0) }}</strong></td>
+        <td>{% if can_edit %}<div class="row-actions"><a class="btn small" href="#" data-toggle="it{{ i.id }}">Edit</a>
+          <form method="post" action="{{ url_for('stands.item_delete', sid=s.id, iid=i.id) }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn small danger" aria-label="Remove">✕</button></form></div>{% endif %}</td>
+      </tr>
+      {% if can_edit %}<tr id="it{{ i.id }}" class="edit-row" hidden><td colspan="{{ 7 if key == 'materials' else 5 }}">{{ item_form(key, kinds, it) }}</td></tr>{% endif %}
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="muted small">Nothing added yet.</p>{% endif %}
+  {% if can_edit %}<details class="add" {% if not items %}open{% endif %}><summary>Add {{ label|lower }}</summary>{{ item_form(key, kinds) }}</details>{% endif %}
+</div>
+{% endfor %}
+<p class="small muted">Material factors are cradle-to-gate. Transport, travel and energy include well-to-tank fuel emissions. "Shows used" spreads a material's footprint (and its disposal) across every show it is used for.</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const F = {{ factors_json|safe }}, K = {{ kind_inputs|safe }};
+  document.querySelectorAll(".js-item").forEach(form => {
+    const sel = form.querySelector(".js-factor"), ql = form.querySelector(".js-qlabel"), ml = form.querySelector(".js-mlabel");
+    const upd = () => {
+      const f = F[sel.value];
+      if (!f) { ql.textContent = "Quantity"; ml.textContent = "Multiplier"; return; }
+      const lab = K[f.kind] || ["Quantity", "Multiplier"];
+      ql.textContent = (f.kind === "material" || f.kind === "spend") ? `Quantity (${f.unit})` : lab[0];
+      ml.textContent = f.kind === "material" ? "Multiplier" : lab[1];
+    };
+    sel.addEventListener("change", upd); upd();
+  });
+  {% if ss.total %}
+  const c = {{ chart|tojson }};
+  SW.doughnut("secChart", c.labels, c.values, ["#24215C", "#3E7CB1", "#7FB685", "#E0A458", "#9C9AD0", "#B8BCC9"], "kg");
+  {% endif %}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}{{ 'Edit stand' if s else 'New stand' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Edit stand details' if s else 'New stand footprint' }}</h1>
+  <p>{{ 'Change the project details. Line items are edited on the stand page.' if s else 'Start with the project details. You can begin from a typical build and adjust each line.' }}</p></div></div>
+<form method="post" class="card" style="max-width:860px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="fields">
+    <div class="field"><label>Client</label><input type="text" name="client" required value="{{ s.client if s else '' }}"></div>
+    <div class="field"><label>Show</label><input type="text" name="show_name" required value="{{ s.show_name if s else '' }}"></div>
+    <div class="field"><label>Job reference</label><input type="text" name="ref" value="{{ s.ref if s and s.ref else '' }}"></div>
+    <div class="field"><label>Venue</label><input type="text" name="venue" value="{{ s.venue if s and s.venue else '' }}"></div>
+    <div class="field"><label>City</label><input type="text" name="city" value="{{ s.city if s and s.city else '' }}"></div>
+    <div class="field"><label>Country</label><input type="text" name="country" value="{{ s.country if s and s.country else 'United Kingdom' }}"></div>
+    <div class="field"><label>Show open date</label><input type="date" name="open_date" value="{{ s.open_date if s and s.open_date else '' }}"><span class="hint">Decides which reporting period the stand counts towards.</span></div>
+    <div class="field"><label>Stand size (m²)</label><input type="text" inputmode="decimal" name="size_m2" {% if not s %}required{% endif %} value="{{ s.size_m2|num(0) if s and s.size_m2 else '' }}"></div>
+    <div class="field"><label>Status</label><select name="status">
+      {% for st, l in [('estimate','Estimate — design / quote stage'),('built','Built — show has happened'),('final','Final — checked against actuals')] %}<option value="{{ st }}" {% if s and s.status == st %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+      <span class="hint">Only Built and Final stands count in the company footprint.</span></div>
+    {% if not s %}
+    <div class="field full">
+      <span class="label-text">Start from</span>
+      <label class="check"><input type="radio" name="template" value="" checked> Blank — I'll add every line</label>
+      {% for k, t in templates.items() %}<label class="check"><input type="radio" name="template" value="{{ k }}"> {{ t.label }} — typical quantities scaled to the stand size</label>{% endfor %}
+    </div>
+    {% endif %}
+    <div class="field full"><label>Notes</label><textarea name="notes" placeholder="Design notes, reuse plans, assumptions">{{ s.notes if s and s.notes else '' }}</textarea></div>
+  </div>
+  <div class="form-foot"><button class="btn primary">{{ 'Save' if s else 'Create and add items' }}</button>
+    <a href="{{ url_for('stands.detail', sid=s.id) if s else url_for('stands.index') }}">Cancel</a></div>
+</form>
+{% endblock %}

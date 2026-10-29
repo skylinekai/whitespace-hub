@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Users</h1><p>Admins manage users, factors and settings. Editors add data and stands. Viewers can see everything and download reports.</p></div></div>
+{% if temp %}<div class="flash ok">Temporary password for <strong>{{ temp[0] }}</strong>: <code style="font-size:1rem">{{ temp[1] }}</code> — copy it now, it won't be shown again.</div>{% endif %}
+<div class="grid-2" style="grid-template-columns:1.6fr 1fr">
+  <div class="card tight table-wrap">
+    <table class="data">
+      <thead><tr><th>User</th><th>Role</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr><td><strong>{{ u.name }}</strong><div class="small muted">{{ u.email }}</div></td>
+          <td><form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="role"><input type="hidden" name="id" value="{{ u.id }}">
+            <select name="role" onchange="this.form.submit()" {% if u.id == user.id %}disabled{% endif %} aria-label="Role for {{ u.name }}">{% for r in roles %}<option {% if u.role == r %}selected{% endif %}>{{ r }}</option>{% endfor %}</select></form></td>
+          <td><span class="badge {{ 'good' if u.active else 'grey' }}">{{ 'Active' if u.active else 'Disabled' }}</span></td>
+          <td><div class="row-actions">
+            <form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="reset"><input type="hidden" name="id" value="{{ u.id }}"><button class="btn small">Reset password</button></form>
+            {% if u.id != user.id %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="{{ u.id }}"><button class="btn small {{ 'danger' if u.active }}">{{ 'Disable' if u.active else 'Enable' }}</button></form>{% endif %}
+          </div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <form class="card" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="add">
+    <h2>Add a user</h2>
+    <div class="fields" style="grid-template-columns:1fr">
+      <div class="field"><label>Name</label><input type="text" name="name" required></div>
+      <div class="field"><label>Email</label><input type="email" name="email" required></div>
+      <div class="field"><label>Role</label><select name="role"><option>editor</option><option>viewer</option><option>admin</option></select></div>
+    </div>
+    <div class="form-foot"><button class="btn primary">Add user</button></div>
+  </form>
+</div>
+{% endblock %}

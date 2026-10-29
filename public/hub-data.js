@@ -1,5 +1,5 @@
 /* Hub content: departments, sections and items.
-   Item: [kind, title, url-or-form-id, subtitle]  kinds: f=form (Jotform ID), d=document (~ = Jotform uploads), l=link, p=hub page, n=note HTML */
+   Item: [kind, title, url-or-form-id, subtitle]  kinds: f=form (Jotform ID), a=app in this site, d=document (~ = Jotform uploads), l=link, p=hub page, n=note HTML */
 window.HUB_U='https://www.jotform.com/uploads/Alya_Khalidi/form_files/';
 window.HUB_EU='https://eu.jotform.com/uploads/Alya_Khalidi/form_files/';
 // item: [kind, title, url, meta]  kind f=form id, l=link, d=document (~ = jotform uploads path)
@@ -72,6 +72,7 @@ window.HUB=[
  ['Quality Control',[['f','Custom QC','251204421184344']]]
 ]},
 {id:'sustainability',name:'Sustainability',c:'#5FA812',g:[
+ ['Carbon footprint',[['a','Carbon platform','/carbon/','Company and stand footprints, targets and SECR reports']]],
  ['ESG Report 2024',[['d','Whitespace Group ESG Report','~Whitespace%20Group%20ESG%20.67038daeb0c6a5.70324900.pdf']]],
  ['Greenly Emissions Report 2023 (internal use only)',[['d','Skyline Whitespace – 2023 Greenhouse Gas Emissions Report','~Skyline%20Whitespace%20-%202023%20-%20Greenhouse%20gas%20emissions%20report%20(1).67038df77c2519.18189752.pdf'],['d','Company Certificate for Skyline Whitespace','~Company%20certificate%20for%20Skyline%20Whitespace%20(1).67038dd55968e6.40330425.png']]],
  ['Purchasing Guide',[['d','Sustainable Purchasing Guide 2023','~Sustainable%20Purchasing%20Guide%202023.670399c4751674.20521057.pdf']]],

@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block title %}Stand footprints{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Stand footprints</h1>
+  <p>{{ rows|length }} stands{% if avg_m2 %} · average {{ avg_m2|num(0) }} kgCO₂e per m²{% endif %}</p></div>
+  {% if can_edit %}<a class="btn primary" href="{{ url_for('stands.form') }}">+ New stand footprint</a>{% endif %}</div>
+<form class="filters" method="get">
+  <input type="search" name="q" placeholder="Client, show, venue or job ref" value="{{ request.args.q or '' }}">
+  <select name="status"><option value="">All statuses</option>
+    {% for st, l in [('estimate','Estimate'),('built','Built'),('final','Final')] %}<option value="{{ st }}" {% if request.args.status == st %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <button class="btn">Filter</button>
+</form>
+<div class="card tight table-wrap">
+  <table class="data">
+    <thead><tr><th>Stand</th><th>Show</th><th>Opens</th><th class="num">Size m²</th><th class="num">tCO₂e</th><th class="num">kgCO₂e / m²</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% set maxm2 = (rows|map(attribute='per_m2')|reject('none')|max) if rows|map(attribute='per_m2')|reject('none')|list else 0 %}
+    {% for r in rows %}{% set s = r.s %}
+      <tr>
+        <td><a href="{{ url_for('stands.detail', sid=s.id) }}"><strong>{{ s.client }}</strong></a>{% if s.ref %}<div class="small muted">{{ s.ref }}</div>{% endif %}</td>
+        <td>{{ s.show_name }}<div class="small muted">{{ s.venue or '' }}{% if s.city %}, {{ s.city }}{% endif %}</div></td>
+        <td class="small">{{ s.open_date or '—' }}</td>
+        <td class="num">{{ s.size_m2|num(0) }}</td>
+        <td class="num"><strong>{{ r.total|t }}</strong></td>
+        <td class="num"><div class="bar-cell" style="justify-content:flex-end">{% if r.per_m2 %}<span class="bar" style="width:{{ (r.per_m2 / maxm2 * 80)|int }}px"></span>{% endif %}{{ r.per_m2|num(0) }}</div></td>
+        <td><span class="badge {{ {'estimate':'grey','built':'s2','final':'good'}[s.status] }}">{{ s.status }}</span></td>
+        <td><div class="row-actions"><a class="btn small" href="{{ url_for('stands.report', sid=s.id) }}">Client report</a></div></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8"><div class="empty"><h2>No stands yet</h2><p>Calculate the footprint of a stand from its materials, haulage, crew travel, energy and waste.</p>
+        {% if can_edit %}<a class="btn primary" href="{{ url_for('stands.form') }}">Calculate your first stand</a>{% endif %}</div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

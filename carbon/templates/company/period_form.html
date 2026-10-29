@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Reporting period{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Edit ' ~ p.name if p else 'New reporting period' }}</h1></div></div>
+<form method="post" class="card" style="max-width:760px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="fields">
+    <div class="field full"><label>Name</label><input type="text" name="name" required placeholder="e.g. FY2026" value="{{ p.name if p else '' }}"></div>
+    <div class="field"><label>Start date</label><input type="date" name="start_date" required value="{{ p.start_date if p else default_start }}"></div>
+    <div class="field"><label>End date</label><input type="date" name="end_date" required value="{{ p.end_date if p else default_end }}"></div>
+    <div class="field"><label>Turnover (£)</label><input type="text" inputmode="decimal" name="revenue_gbp" value="{{ p.revenue_gbp|int if p and p.revenue_gbp else '' }}"><span class="hint">For the tCO₂e per £m intensity ratio (SECR).</span></div>
+    <div class="field"><label>Employees (FTE)</label><input type="text" inputmode="decimal" name="employees_fte" value="{{ p.employees_fte if p and p.employees_fte else '' }}"></div>
+    <div class="field full">
+      <label class="check"><input type="checkbox" name="include_stands" value="1" {% if not p or p.include_stands %}checked{% endif %}> Include stand footprints in the company total</label>
+      <span class="hint">Stands marked Built or Final with an open date in this period are added to Scope 3 (materials → Cat 1, haulage → Cat 4, crew travel → Cat 6, waste → Cat 5, end of life → Cat 12). Don't also enter the same materials or haulage as company activities, or they'll be counted twice.</span>
+    </div>
+    <div class="field full"><label class="check"><input type="checkbox" name="locked" value="1" {% if p and p.locked %}checked{% endif %}> Lock this period (no further edits to its activity data)</label></div>
+    <div class="field full"><label>Notes</label><textarea name="notes">{{ p.notes if p and p.notes else '' }}</textarea></div>
+  </div>
+  <div class="form-foot"><button class="btn primary">Save period</button><a href="{{ url_for('company.periods') }}">Cancel</a></div>
+</form>
+{% endblock %}

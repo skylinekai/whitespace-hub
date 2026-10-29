@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Import data{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Import activity data</h1><p>Into {{ period.name }}. You'll review every row before anything is saved.</p></div></div>
+<div class="grid-2">
+  <form class="card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="template">
+    <h2>Spreadsheet import</h2>
+    <p class="muted">Fill in the template (one row per bill, fuel card statement, trip or invoice) and upload it as Excel or CSV.</p>
+    <p><a class="btn small" href="{{ url_for('company.import_template') }}">Download template (.xlsx)</a></p>
+    <p class="small muted">Columns: date, site, factor_code, quantity, description, category (optional), data_quality, renewable, evidence. The template's second sheet lists every factor code.</p>
+    <div class="field"><label>File</label><input type="file" name="file" accept=".xlsx,.csv" required></div>
+    <div class="form-foot"><button class="btn primary">Upload and review</button></div>
+  </form>
+
+  <form class="card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="ai">
+    <h2>AI import <span class="badge {{ 'good' if ai_enabled else 'grey' }}">{{ 'On' if ai_enabled else 'Off' }}</span></h2>
+    <p class="muted">Drop in a utility bill, fuel card statement, supplier invoice, travel report or any spreadsheet. Claude reads it, picks the right emission factor for each line and fills in quantities for you to check.</p>
+    {% if ai_enabled %}
+      <div class="field"><label>File</label><input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.csv,.txt" required>
+        <span class="hint">PDF, image, Excel or CSV, up to 20 MB.</span></div>
+      <div class="form-foot"><button class="btn primary">Extract with AI</button><span class="small muted">Takes 10–60 seconds.</span></div>
+    {% else %}
+      <div class="note">To switch this on, add an <code>ANTHROPIC_API_KEY</code> environment variable to the service in Render, then redeploy.</div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

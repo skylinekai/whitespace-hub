@@ -35,6 +35,7 @@
     open: 'M6 4a2 2 0 0 0-2 2v8c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2v-2.5a.5.5 0 0 0-1 0V14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6c0-.6.4-1 1-1h2.5a.5.5 0 0 0 0-1H6Zm5.5 0a.5.5 0 0 0 0 1h2.8l-4.6 4.6a.5.5 0 0 0 .7.7L15 5.7v2.8a.5.5 0 0 0 1 0v-4a.5.5 0 0 0-.5-.5h-4Z',
     inbox: 'M5.4 3h9.2c.9 0 1.6.6 1.9 1.4l1.4 5.3v4.8c0 1.4-1.1 2.5-2.5 2.5h-11A2.5 2.5 0 0 1 2 14.5V9.7l1.4-5.3C3.7 3.6 4.5 3 5.4 3Zm0 1a1 1 0 0 0-1 .7L3.2 9H7c.3 0 .5.2.5.5a2.5 2.5 0 0 0 5 0c0-.3.2-.5.5-.5h3.8l-1.2-4.3a1 1 0 0 0-1-.7H5.4ZM3 10v4.5c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5V10h-3.5a3.5 3.5 0 0 1-7 0H3Z',
     bolt: 'M7.4 2.3c.1-.2.3-.3.5-.3h5.6c.4 0 .6.4.5.7L12.4 7H15c.4 0 .7.5.4.8l-7.5 9.6c-.3.4-1 .1-.9-.4l1.2-5.5H5.5a.5.5 0 0 1-.5-.6l2.4-8.6ZM8.3 3 6.1 10.5h2.7c.3 0 .5.3.5.6l-.9 4.1L14 8H11.6a.5.5 0 0 1-.4-.7L12.7 3H8.3Z',
+    leaf: 'M16.5 3.1c.3 0 .5.3.5.5 0 5.4-1.6 9-4 11.1A7.4 7.4 0 0 1 4.5 16l-.9 1.7a.5.5 0 0 1-.9-.4l.9-1.8C2.4 12.7 3 9.5 5.2 7.2 7.6 4.8 11.5 3.3 16.5 3.1Zm-.5 1c-4.5.3-8 1.7-10 3.8-1.9 2-2.4 4.7-1 7.1l.6-1.1C7 11 9.4 9 12.6 7.6a.5.5 0 0 1 .4.9C9.9 9.9 7.6 11.8 6 14.7l-.6 1.1c2.3 1 5 .6 7-1.1 2.1-1.8 3.5-5 3.6-10.6Z',
     eraser: 'M11.2 3.4a2 2 0 0 1 2.8 0l2.6 2.6a2 2 0 0 1 0 2.8L10.4 15H16.5a.5.5 0 0 1 0 1H8.1a2 2 0 0 1-1.5-.6L3.4 12.2a2 2 0 0 1 0-2.8l7.8-6Zm-2.5 4L4.1 10a1 1 0 0 0 0 1.4l3.2 3.2c.4.4 1 .4 1.4 0l3.6-3.6-3.6-3.6Z'
   };
   const icon = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true"><path d="${P[n]}"/></svg>`;
@@ -52,6 +53,7 @@
     if (k === 'f') { url = '#form/' + u; type = 'form'; }
     else if (k === 'l') type = 'link';
     else if (k === 'p') { url = '#d/' + u; type = 'page'; }
+    else if (k === 'a') { type = 'app'; }
     else { if (u.startsWith('~')) url = window.HUB_U + u.slice(1); type = 'doc'; }
     const ext = type === 'doc' ? (url.split('?')[0].split('.').pop() || '').toLowerCase() : type;
     ITEMS.push({ key: (k === 'f' ? 'form:' + u : type + ':' + url), type, t, url, m: m || '', ext, dept: d, sec, formId: k === 'f' ? u : null });
@@ -83,6 +85,7 @@
       HOME.map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]), active === id, byDept[id].c)).join('') +
       `<div class="grp">More</div>` +
       ['how-to-guides', 'essa-discount-card'].map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]) || '', active === id, byDept[id].c)).join('') +
+      `<div class="grp">Apps</div>` + `<a class="folder" href="/carbon/">${icon('leaf', 'i ic')}<span class="lbl">Carbon platform</span></a>` +
       `<div class="grp">Admin</div>` + `<a class="folder" href="/admin">${icon('inbox', 'i ic')}<span class="lbl">Submissions</span></a>`;
   }
   const scrim = h('div', { class: 'scrim', hidden: true, onclick: () => toggleMenu(false) });
@@ -92,8 +95,8 @@
 
   // ---------- rows ----------
   const hl = (s, term) => { s = esc(s); if (!term) return s; const i = s.toLowerCase().indexOf(term.toLowerCase()); return i < 0 ? s : s.slice(0, i) + '<mark>' + s.slice(i, i + term.length) + '</mark>' + s.slice(i + term.length); };
-  const KIND = { form: 'Form', link: 'Link', page: 'Page', pdf: 'PDF', docx: 'Word', doc: 'Word', xlsx: 'Excel', pptx: 'PowerPoint', png: 'Image', jpg: 'Image', jpeg: 'Image', mp4: 'Video' };
-  const BADGE = { form: icon('form'), link: icon('open'), page: icon('chev') };
+  const KIND = { form: 'Form', app: 'App', link: 'Link', page: 'Page', pdf: 'PDF', docx: 'Word', doc: 'Word', xlsx: 'Excel', pptx: 'PowerPoint', png: 'Image', jpg: 'Image', jpeg: 'Image', mp4: 'Video' };
+  const BADGE = { form: icon('form'), app: icon('leaf'), link: icon('open'), page: icon('chev') };
   function row(x, { where = false, term = '' } = {}) {
     const fav = favs.includes(x.key);
     const ext = x.type === 'doc' ? x.ext : x.type;
@@ -117,6 +120,8 @@
     return `<div class="pane-inner">
       <div class="hello"><div><h1 class="title">${greeting()}</h1><p class="subtitle">Forms and documents for your day-to-day work: ${nf} forms and ${nd} documents across ${HOME.length} departments.</p></div></div>
       <div class="quick">${QUICK.map(([t, id]) => `<a class="qa" href="#form/${id}"><span class="tile">${icon('bolt')}</span><span><b>${esc(t)}</b><small>${esc((formDept[id] || {}).dept ? formDept[id].dept.name : 'Form')}</small></span></a>`).join('')}</div>
+      <h2 class="section">Apps</h2>
+      <div class="quick" style="margin-top:0"><a class="qa" href="/carbon/"><span class="tile">${icon('leaf')}</span><span><b>Carbon platform</b><small>Company and stand footprints, targets and reports</small></span></a></div>
       ${fv.length ? `<h2 class="section">Favourites <span class="n">${fv.length}</span></h2><div class="list">${fv.map(x => row(x, { where: true })).join('')}</div>` : ''}
       <h2 class="section">Departments</h2>
       <div class="depts">${HOME.map(id => { const d = byDept[id], c = { form: 0, doc: 0, link: 0 }; ITEMS.filter(x => x.dept === d && c[x.type] != null).forEach(x => c[x.type]++);

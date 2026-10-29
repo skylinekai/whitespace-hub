@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Emission factor{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Edit factor' if f else 'New emission factor' }}</h1>{% if f %}<p>Last updated {{ f.updated_at }}</p>{% endif %}</div></div>
+<form method="post" class="card" style="max-width:900px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="fields">
+    <div class="field"><label>Code</label><input type="text" name="code" required value="{{ f.code if f else '' }}" placeholder="e.g. MAT-BAMBOO-M2"><span class="hint">Used by spreadsheet imports. Keep it stable.</span></div>
+    <div class="field" style="grid-column:span 2"><label>Name</label><input type="text" name="name" required value="{{ f.name if f else '' }}"></div>
+    <div class="field"><label>Type</label><select name="kind">{% for k, l in kinds.items() %}<option value="{{ k }}" {% if f and f.kind == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Default category</label><select name="default_category">{% for k, v in cats.items() %}<option value="{{ k }}" {% if f and f.default_category == k %}selected{% endif %}>S{{ v[0] }} · {{ v[1] }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Unit</label><input type="text" name="unit" required value="{{ f.unit if f else '' }}" placeholder="kWh, litre, km, kg, m², GBP…"></div>
+    <div class="field"><label>kgCO₂e per unit (direct)</label><input type="text" inputmode="decimal" name="kg_per_unit" required value="{{ f.kg_per_unit if f else '' }}"></div>
+    <div class="field"><label>Well-to-tank per unit</label><input type="text" inputmode="decimal" name="wtt_per_unit" value="{{ f.wtt_per_unit if f else 0 }}"><span class="hint">Reported in Scope 3 Cat 3.</span></div>
+    <div class="field"><label>T&amp;D losses per unit</label><input type="text" inputmode="decimal" name="td_per_unit" value="{{ f.td_per_unit if f else 0 }}"><span class="hint">Electricity only.</span></div>
+    <div class="field"><label>Mass per unit (kg)</label><input type="text" inputmode="decimal" name="mass_kg_per_unit" value="{{ f.mass_kg_per_unit if f and f.mass_kg_per_unit is not none else '' }}"><span class="hint">Materials: lets the stand calculator count disposal.</span></div>
+    <div class="field"><label>Energy per unit (kWh)</label><input type="text" inputmode="decimal" name="kwh_per_unit" value="{{ f.kwh_per_unit if f and f.kwh_per_unit is not none else '' }}"><span class="hint">Fuels &amp; vehicles: used for SECR energy totals.</span></div>
+    <div class="field"><label>Available in</label><select name="module">{% for k, l in [('both','Company and stands'),('company','Company only'),('stand','Stands only')] %}<option value="{{ k }}" {% if f and f.module == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Source</label><input type="text" name="source" value="{{ f.source if f and f.source else '' }}" placeholder="DESNZ 2026, supplier EPD…"></div>
+    <div class="field full"><label>Notes</label><textarea name="notes">{{ f.notes if f and f.notes else '' }}</textarea></div>
+    <div class="field"><label class="check"><input type="checkbox" name="active" value="1" {% if not f or f.active %}checked{% endif %}> Active (shown in pickers)</label></div>
+  </div>
+  <div class="form-foot"><button class="btn primary">Save factor</button><a href="{{ url_for('library.index') }}">Cancel</a></div>
+</form>
+{% endblock %}

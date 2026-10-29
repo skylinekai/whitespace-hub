@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Welcome{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Welcome to {{ org_name }} Carbon</h1>
+<p>Measure the company footprint, calculate the footprint of every stand you build, and produce SECR-ready reports.</p></div></div>
+<div class="grid-2">
+  <div class="card">
+    <h2>Company footprint — get started</h2>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><strong>Create a reporting period</strong><div class="small muted">Usually your financial year. Add turnover and headcount for intensity ratios.</div>
+        {% if can_edit %}<a class="btn small primary" style="margin-top:6px" href="{{ url_for('company.period_form') }}">Create period</a>{% endif %}</div></li>
+      <li><div><strong>Add your sites</strong><div class="small muted">Head office, workshop, warehouse.</div></div></li>
+      <li><div><strong>Add or import activity data</strong><div class="small muted">Energy bills, fuel cards, mileage, flights, hotels, waste notes, supplier spend.</div></div></li>
+      <li><div><strong>Set a target and an action plan</strong><div class="small muted">Track progress against a base year.</div></div></li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>Stand footprints</h2>
+    <p class="muted">Work out the footprint of a stand from its materials, haulage, crew travel, show energy and waste — with reuse spread across the shows each element is used for. Then hand the client a branded report.</p>
+    <a class="btn primary" href="{{ url_for('stands.form') }}">Calculate a stand</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Settings</h1><p>Used on reports.</p></div></div>
+<form method="post" class="card" style="max-width:860px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="fields">
+    <div class="field"><label>Organisation name</label><input type="text" name="org_name" value="{{ vals.org_name }}"></div>
+    <div class="field"><label>Company number</label><input type="text" name="company_number" value="{{ vals.company_number }}"></div>
+    <div class="field"><label>Reporting contact</label><input type="text" name="reporting_contact" value="{{ vals.reporting_contact }}" placeholder="Name, email"></div>
+    <div class="field full"><label>Additional methodology note</label><textarea name="methodology_note" placeholder="Anything specific about how data was collected or estimated">{{ vals.methodology_note }}</textarea></div>
+    <div class="field full"><label>Organisational boundary note</label><textarea name="boundary_note" placeholder="e.g. Covers Skyline Whitespace Ltd UK operations; excludes group companies">{{ vals.boundary_note }}</textarea></div>
+    <div class="field full"><label>Exclusions</label><textarea name="exclusions_note" placeholder="e.g. Category 11 use of sold products excluded as not material">{{ vals.exclusions_note }}</textarea></div>
+  </div>
+  <div class="form-foot"><button class="btn primary">Save settings</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}{% block title %}Stand footprint — {{ s.client }}{% endblock %}
+{% block content %}
+<div class="report-toolbar no-print"><a href="{{ url_for('stands.detail', sid=s.id) }}">← Back to stand</a><button class="btn primary" onclick="window.print()">Print / save as PDF</button></div>
+<div class="report">
+  <div class="report-head">
+    <div><div class="muted small">Exhibition stand carbon footprint</div><h1>{{ s.client }}</h1>
+      <div class="muted">{{ s.show_name }}{% if s.venue %} · {{ s.venue }}{% endif %}{% if s.city %}, {{ s.city }}{% endif %}{% if s.open_date %} · {{ s.open_date }}{% endif %}</div></div>
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="{{ org_name }}">
+  </div>
+
+  <div class="grid-3" style="gap:16px;align-items:end">
+    <div><div class="muted small">Total footprint</div><div class="big">{{ ss.total|t }}</div><div class="muted small">tonnes CO₂e</div></div>
+    <div><div class="muted small">Per square metre</div><div class="big">{{ ss.per_m2|num(0) }}</div><div class="muted small">kgCO₂e / m² · {{ s.size_m2|num(0) }} m² stand</div></div>
+    <div><div class="muted small">Status</div><div style="font-size:1.2rem;font-weight:700;color:var(--navy)">{{ {'estimate':'Design estimate','built':'As built','final':'Final, checked'}[s.status] }}</div></div>
+  </div>
+
+  <div class="equiv">
+    <div><strong>{{ (ss.total / 0.209)|num(0) }} km</strong>driven in an average UK car</div>
+    <div><strong>{{ (ss.total / 1830)|num(1) }}</strong>return economy flights London–New York (per passenger)</div>
+    <div><strong>{{ (ss.total / 630)|num(1) }}</strong>UK homes' electricity for a year</div>
+  </div>
+
+  <h2>Where the footprint comes from</h2>
+  <div class="grid-2" style="grid-template-columns:1fr 1.2fr;align-items:center">
+    <div class="chart-box short"><canvas id="secChart" aria-label="Footprint breakdown"></canvas></div>
+    <table class="data">
+      {% for k, v in ss.by_section.items() %}<tr><td>{{ STAND_SECTIONS[k][0] }}</td><td class="num">{{ v|num(0) }} kg</td><td class="num muted">{{ v|pct(ss.total) }}</td></tr>{% endfor %}
+      <tr><td>End of life</td><td class="num">{{ ss.eol_total|num(0) }} kg</td><td class="num muted">{{ ss.eol_total|pct(ss.total) }}</td></tr>
+      <tfoot><tr><td>Total</td><td class="num">{{ ss.total|num(0) }} kg</td><td></td></tr></tfoot>
+    </table>
+  </div>
+
+  <h2>Largest contributors</h2>
+  <table class="data">
+    <thead><tr><th>Item</th><th>Reuse</th><th>After the show</th><th class="num">kgCO₂e</th></tr></thead>
+    <tbody>{% for r in ss.top %}{% set i = r.item %}
+      <tr><td>{{ i.description or i.ef_name }}<div class="small muted">{{ i.ef_name }}</div></td>
+        <td class="small">{% if i.section == 'materials' %}{% if i.uses > 1 %}Used for {{ i.uses|num(0) }} shows{% else %}Single use{% endif %}{% else %}—{% endif %}</td>
+        <td class="small">{{ eol_routes[i.eol][0] if i.eol in eol_routes else '—' }}</td>
+        <td class="num">{{ r.total|num(0) }}</td></tr>{% endfor %}</tbody>
+  </table>
+
+  {% if recs %}
+  <h2>Options to reduce it next time</h2>
+  <table class="data"><tbody>{% for r in recs[:5] %}
+    <tr><td><strong>{{ r.title }}</strong><div class="small muted">{{ r.text }}</div></td><td class="num">{% if r.saving %}up to {{ r.saving|num(0) }} kg{% endif %}</td></tr>{% endfor %}</tbody></table>
+  {% endif %}
+
+  <h2>Method</h2>
+  <p class="small">Calculated by {{ org_name }} in line with the GHG Protocol. Materials use cradle-to-gate factors (ICE database); fuel, travel, haulage, energy and waste use UK Government GHG conversion factors, including well-to-tank emissions; flights include radiative forcing. Reusable elements are spread across the number of shows they are used for, and their disposal is counted when they reach end of life. {{ 'Figures are a design-stage estimate and will be updated after the build.' if s.status == 'estimate' else '' }} Comparisons are approximate and for illustration only.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>document.addEventListener("DOMContentLoaded", () => {
+  const c = {{ chart|tojson }};
+  SW.doughnut("secChart", c.labels, c.values, ["#24215C", "#3E7CB1", "#7FB685", "#E0A458", "#9C9AD0", "#B8BCC9"], "kg");
+});</script>
+{% endblock %}

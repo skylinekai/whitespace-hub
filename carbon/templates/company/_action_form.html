@@ -1,0 +1,16 @@
+<form method="post" action="{{ url_for('company.action_save') }}">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">{% if a %}<input type="hidden" name="id" value="{{ a.id }}">{% endif %}
+  <div class="fields">
+    <div class="field" style="grid-column:span 2"><label>Title</label><input type="text" name="title" required value="{{ a.title if a else '' }}"></div>
+    <div class="field"><label>Category</label><select name="category"><option value="">—</option>
+      {% for k, v in CATEGORIES.items() %}<option value="{{ k }}" {% if a and a.category == k %}selected{% endif %}>S{{ v[0] }} · {{ v[1] }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Status</label><select name="status">
+      {% for st in statuses %}<option value="{{ st }}" {% if a and a.status == st %}selected{% endif %}>{{ st.replace('_',' ') }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Owner</label><input type="text" name="owner" value="{{ a.owner if a and a.owner else '' }}"></div>
+    <div class="field"><label>Due date</label><input type="date" name="due_date" value="{{ a.due_date if a and a.due_date else '' }}"></div>
+    <div class="field"><label>Est. saving (tCO₂e / yr)</label><input type="text" inputmode="decimal" name="est_reduction_t" value="{{ a.est_reduction_t if a and a.est_reduction_t is not none else '' }}"></div>
+    <div class="field"><label>Cost (£)</label><input type="text" inputmode="decimal" name="cost_gbp" value="{{ a.cost_gbp|int if a and a.cost_gbp else '' }}"></div>
+    <div class="field full"><label>Description</label><textarea name="description" style="min-height:56px">{{ a.description if a and a.description else '' }}</textarea></div>
+  </div>
+  <div class="form-foot"><button class="btn primary small">Save action</button></div>
+</form>

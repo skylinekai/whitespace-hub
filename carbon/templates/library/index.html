@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% block title %}Emission factors{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Emission factors</h1><p>{{ factors|length }} factors · current set: {{ factor_set or 'not named' }}</p></div>
+  <div class="actions-row"><a class="btn" href="{{ url_for('library.export') }}">Export CSV</a>
+    {% if user.role == 'admin' %}<a class="btn primary" href="{{ url_for('library.form') }}">+ Add factor</a>{% endif %}</div></div>
+
+<div class="note" style="margin-bottom:16px">The UK Government publishes new conversion factors every June. To update: export this list, change the values (keep the codes), import it below, then use <em>Re-apply factors</em> on the reporting period. Activities keep a snapshot of the factor they were calculated with, so past periods don't move unless you choose to.</div>
+
+<form class="filters" method="get">
+  <input type="search" name="q" placeholder="Search name or code" value="{{ request.args.q or '' }}">
+  <select name="kind"><option value="">All types</option>{% for k, l in KIND_LABELS.items() %}<option value="{{ k }}" {% if request.args.kind == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <button class="btn">Filter</button>
+</form>
+
+<div class="card tight table-wrap">
+  <table class="data">
+    <thead><tr><th>Factor</th><th>Type</th><th>Default category</th><th class="num">kgCO₂e / unit</th><th class="num">WTT + T&amp;D</th><th>Used in</th><th>Source</th><th></th></tr></thead>
+    <tbody>
+    {% for f in factors %}
+      <tr {% if not f.active %}style="opacity:.5"{% endif %}>
+        <td>{{ f.name }}<div class="small muted">{{ f.code }}</div></td>
+        <td class="small">{{ KIND_LABELS.get(f.kind, f.kind) }}</td>
+        <td class="small"><span class="badge s{{ CATEGORIES[f.default_category][0] }}">S{{ CATEGORIES[f.default_category][0] }}</span> {{ CATEGORIES[f.default_category][1] }}</td>
+        <td class="num">{{ f.kg_per_unit|num(4) if f.kg_per_unit < 10 else f.kg_per_unit|num(1) }} <span class="small muted">/{{ f.unit }}</span></td>
+        <td class="num small">{{ (f.wtt_per_unit + f.td_per_unit)|num(4) if (f.wtt_per_unit + f.td_per_unit) else '—' }}</td>
+        <td class="small">{{ {'both':'Company + stands','company':'Company','stand':'Stands'}[f.module] }}</td>
+        <td class="small">{{ f.source or '' }}</td>
+        <td>{% if user.role == 'admin' %}<a class="btn small" href="{{ url_for('library.form', fid=f.id) }}">Edit</a>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if user.role == 'admin' %}
+<form class="card" method="post" action="{{ url_for('library.import_factors') }}" enctype="multipart/form-data" style="max-width:760px">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2>Import / update factors</h2>
+  <p class="muted small">Upload a CSV or Excel file with the same columns as the export. Matching codes are updated; new codes are added.</p>
+  <div class="fields">
+    <div class="field"><label>File</label><input type="file" name="file" accept=".csv,.xlsx" required></div>
+    <div class="field"><label>Name this factor set</label><input type="text" name="factor_set" placeholder="e.g. DESNZ 2026" value=""></div>
+  </div>
+  <div class="form-foot"><button class="btn primary">Import factors</button></div>
+</form>
+{% endif %}
+{% endblock %}

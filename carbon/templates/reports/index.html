@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Reports</h1><p>Every report opens as a branded page. Use your browser's Print → Save as PDF to send it.</p></div></div>
+<div class="grid-3">
+  <div class="card"><h2>SECR disclosure</h2><p class="muted">Streamlined Energy &amp; Carbon Reporting table for the Directors' Report: UK energy use, Scope 1, 2 and grey-fleet emissions, intensity ratio, methodology and efficiency actions, with prior-year comparison.</p>
+    <a class="btn primary" href="{{ url_for('reports.secr') }}">Open SECR report</a></div>
+  <div class="card"><h2>GHG inventory</h2><p class="muted">Full Scope 1, 2 and 3 inventory by GHG Protocol category and site, with market- and location-based Scope 2, data quality and methodology. Suitable for tenders, EcoVadis, CDP and client questionnaires.</p>
+    <a class="btn primary" href="{{ url_for('reports.inventory') }}">Open GHG inventory</a></div>
+  <div class="card"><h2>Stand client reports</h2><p class="muted">A one-page footprint report for each stand, with the breakdown, reuse and end-of-life story and reduction options. Open one from the stand's page.</p>
+    <a class="btn" href="{{ url_for('stands.index') }}">Go to stands</a></div>
+</div>
+<div class="card" style="margin-top:20px"><h2>Raw data</h2>
+  <p class="muted">Export activity data with every factor and calculation for your auditor or verifier.</p>
+  <a class="btn" href="{{ url_for('company.export_activities') }}">Export activities (.xlsx)</a>
+  <a class="btn" href="{{ url_for('library.export') }}">Export emission factors (.csv)</a></div>
+{% endblock %}

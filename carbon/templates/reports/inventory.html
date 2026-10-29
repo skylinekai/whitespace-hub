@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% block title %}GHG inventory — {{ p.name }}{% endblock %}
+{% block content %}
+{% set sc = s.by_scope %}
+<div class="report-toolbar no-print"><a href="{{ url_for('reports.index') }}">← Reports</a><button class="btn primary" onclick="window.print()">Print / save as PDF</button></div>
+<div class="report">
+  <div class="report-head">
+    <div><div class="muted small">Greenhouse gas inventory</div><h1>{{ org_name }}</h1>
+      <div class="muted">{{ p.name }} · {{ p.start_date }} to {{ p.end_date }}{% if company_number %} · Company no. {{ company_number }}{% endif %}</div></div>
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="">
+  </div>
+
+  <div class="grid-3" style="gap:12px">
+    <div><div class="muted small">Total footprint</div><div class="big">{{ s.total|t }}</div><div class="muted small">tCO₂e (location-based)</div></div>
+    <div><div class="muted small">Intensity</div><div class="big">{{ s.per_m_revenue|num(1) }}</div><div class="muted small">tCO₂e per £m turnover</div></div>
+    <div><div class="muted small">Per employee</div><div class="big">{{ s.per_fte|num(1) }}</div><div class="muted small">tCO₂e per FTE</div></div>
+  </div>
+  {% if ps and ps.total %}<p class="small" style="margin-top:10px">{% set d = (s.total - ps.total) / ps.total * 100 %}Change vs {{ prev.name }}: <span class="{{ 'delta-down' if d < 0 else 'delta-up' }}">{{ '%+.1f'|format(d) }}%</span> ({{ ps.total|t }} t)</p>{% endif %}
+
+  <h2>Emissions by scope and category</h2>
+  <table class="data">
+    <thead><tr><th>Scope / category</th><th class="num">tCO₂e</th><th class="num">Share</th>{% if ps %}<th class="num">{{ prev.name }}</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for scope in [1,2,3] %}
+      <tr><td><span class="badge s{{ scope }}">Scope {{ scope }}</span></td><td class="num"><strong>{{ sc[scope]|t(2) }}</strong></td><td class="num">{{ sc[scope]|pct(s.total) }}</td>{% if ps %}<td class="num">{{ ps.by_scope[scope]|t(2) }}</td>{% endif %}</tr>
+      {% for k, v in all_cats.items() if v[0] == scope %}
+        {% set kg = s.by_cat.get(k, 0) %}
+        <tr><td>&nbsp;&nbsp;&nbsp;{{ v[1] }}</td><td class="num">{{ kg|t(2) if kg else '—' }}</td><td class="num muted">{{ kg|pct(s.total) if kg else '' }}</td>{% if ps %}<td class="num muted">{{ ps.by_cat.get(k, 0)|t(2) if ps.by_cat.get(k) else '—' }}</td>{% endif %}</tr>
+      {% endfor %}
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><td>Total</td><td class="num">{{ s.total|t(2) }}</td><td class="num">100%</td>{% if ps %}<td class="num">{{ ps.total|t(2) }}</td>{% endif %}</tr></tfoot>
+  </table>
+  <p class="small muted">Scope 2 market-based: {{ s.scope2_market|t(2) }} tCO₂e (renewable tariffs backed by REGOs counted as zero).</p>
+
+  {% if s.stands %}
+  <h2>Stand projects included in Scope 3</h2>
+  <table class="data"><thead><tr><th>Stand</th><th>Opened</th><th class="num">tCO₂e</th></tr></thead>
+    <tbody>{% for st in s.stands %}<tr><td>{{ st.name }}</td><td>{{ st.open_date }}</td><td class="num">{{ st.kg|t(2) }}</td></tr>{% endfor %}</tbody>
+    <tfoot><tr><td colspan="2">Total</td><td class="num">{{ s.stands_total|t(2) }}</td></tr></tfoot></table>
+  {% endif %}
+
+  <h2>By site</h2>
+  <table class="data"><thead><tr><th>Site</th><th class="num">tCO₂e</th><th class="num">Share</th></tr></thead>
+    <tbody>{% for k, v in s.by_site.items() %}<tr><td>{{ k }}</td><td class="num">{{ v|t(2) }}</td><td class="num">{{ v|pct(s.total) }}</td></tr>{% endfor %}</tbody></table>
+
+  <h2>Methodology and boundary</h2>
+  <p>This inventory follows the GHG Protocol Corporate Standard and Scope 3 Standard, using an operational control boundary. Activity data (energy, fuel, distance, nights, waste tonnage, materials, and spend where no physical data exists) is multiplied by emission factors from {{ factor_set }}, the ICE database for construction materials and indicative spend-based factors. Well-to-tank and grid transmission losses for fuels and electricity are reported in Scope 3 Category 3. Flights include radiative forcing.{% if p.include_stands %} Stand projects that opened during the period are included from the stand calculator, with reusable elements spread across the number of shows they serve.{% endif %}</p>
+  {% if notes.boundary %}<p>{{ notes.boundary }}</p>{% endif %}
+  <p><strong>Exclusions:</strong> {{ notes.exclusions or 'Scope 3 categories with no recorded data are reported as nil and should be reviewed for relevance.' }}</p>
+  <p class="small muted">Data quality: {% for k, v in s.by_quality.items() %}{{ k }} {{ v|pct(s.total) }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+  {% if contact %}<p class="small muted">Contact: {{ contact }}</p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% block title %}SECR report — {{ p.name }}{% endblock %}
+{% block content %}
+{% set sc = s.by_scope %}
+<div class="report-toolbar no-print"><a href="{{ url_for('reports.index') }}">← Reports</a><button class="btn primary" onclick="window.print()">Print / save as PDF</button></div>
+<div class="report">
+  <div class="report-head">
+    <div><div class="muted small">Streamlined Energy &amp; Carbon Reporting</div><h1>{{ org_name }}</h1>
+      <div class="muted">{{ p.name }} · {{ p.start_date }} to {{ p.end_date }}</div></div>
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="">
+  </div>
+
+  {% if p.revenue_gbp is none %}<div class="note warn no-print">Add turnover to {{ p.name }} to calculate the intensity ratio.</div>{% endif %}
+
+  <h2>Energy consumption and emissions</h2>
+  <table class="data">
+    <thead><tr><th></th><th class="num">{{ p.name }}</th>{% if ps %}<th class="num">{{ prev.name }}</th>{% endif %}</tr></thead>
+    <tbody>
+      <tr><td colspan="{{ 3 if ps else 2 }}"><strong>UK energy use (kWh)</strong></td></tr>
+      {% for k, v in s.energy.items() %}<tr><td>&nbsp;&nbsp;{{ k }}</td><td class="num">{{ v|num(0) }}</td>{% if ps %}<td class="num">{{ ps.energy[k]|num(0) }}</td>{% endif %}</tr>{% endfor %}
+      <tr><td><strong>Total energy</strong></td><td class="num"><strong>{{ s.energy_total|num(0) }}</strong></td>{% if ps %}<td class="num"><strong>{{ ps.energy_total|num(0) }}</strong></td>{% endif %}</tr>
+      <tr><td colspan="{{ 3 if ps else 2 }}"><strong>Emissions (tCO₂e)</strong></td></tr>
+      <tr><td>&nbsp;&nbsp;Scope 1 — combustion of gas and fuel, company vehicles, refrigerants</td><td class="num">{{ sc[1]|t(2) }}</td>{% if ps %}<td class="num">{{ ps.by_scope[1]|t(2) }}</td>{% endif %}</tr>
+      <tr><td>&nbsp;&nbsp;Scope 2 — purchased electricity (location-based)</td><td class="num">{{ sc[2]|t(2) }}</td>{% if ps %}<td class="num">{{ ps.by_scope[2]|t(2) }}</td>{% endif %}</tr>
+      <tr><td>&nbsp;&nbsp;Scope 3 — business travel in employee-owned or hire cars</td><td class="num">{{ grey|t(2) }}</td>{% if ps %}<td class="num">{{ prev_grey|t(2) }}</td>{% endif %}</tr>
+      <tr><td><strong>Total gross emissions</strong></td><td class="num"><strong>{{ secr_total|t(2) }}</strong></td>{% if ps %}<td class="num"><strong>{{ prev_total|t(2) }}</strong></td>{% endif %}</tr>
+      <tr><td>&nbsp;&nbsp;Scope 2 — market-based (memo)</td><td class="num">{{ s.scope2_market|t(2) }}</td>{% if ps %}<td class="num">{{ ps.scope2_market|t(2) }}</td>{% endif %}</tr>
+      <tr><td><strong>Intensity ratio</strong> — tCO₂e per £m turnover</td><td class="num"><strong>{{ intensity|num(2) }}</strong></td>
+        {% if ps %}<td class="num">{% if prev.revenue_gbp %}{{ ((prev_total / 1000) / (prev.revenue_gbp / 1e6))|num(2) }}{% else %}—{% endif %}</td>{% endif %}</tr>
+    </tbody>
+  </table>
+
+  <h2>Methodology</h2>
+  <p>We have followed the GHG Protocol Corporate Accounting and Reporting Standard and the UK Government's Environmental Reporting Guidelines (2019). Emissions are calculated from energy and fuel consumption records (meter readings, supplier invoices and fuel card data) and mileage claims, multiplied by the UK Government GHG conversion factors ({{ factor_set }}). Scope 2 is reported on a location-based basis, with the market-based figure shown for information. Energy for transport is converted to kWh using standard calorific values.</p>
+  {% if notes.methodology %}<p>{{ notes.methodology }}</p>{% endif %}
+  <p class="small muted">Data quality: {% for k, v in s.by_quality.items() %}{{ k }} {{ v|pct(s.total) }}{% if not loop.last %}, {% endif %}{% endfor %} of total footprint.</p>
+
+  <h2>Energy efficiency actions</h2>
+  {% if actions_done %}
+  <ul>{% for a in actions_done %}<li><strong>{{ a.title }}</strong>{% if a.status == 'in_progress' %} (in progress){% endif %}{% if a.description %} — {{ a.description }}{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">No completed or in-progress actions recorded. Add them under Targets &amp; actions.</p>{% endif %}
+
+  <p class="small muted" style="margin-top:28px">Prepared with {{ org_name }} Carbon. Wording should be reviewed by your accountant before inclusion in the Directors' Report.</p>
+</div>
+{% endblock %}

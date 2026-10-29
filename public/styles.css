@@ -151,6 +151,7 @@ h2.section .n { font-weight: 400; color: var(--fg-3); font-size: 14px; }
 .row a.go { position: absolute; inset: 0; z-index: 1; }
 .row .ft { width: 32px; height: 32px; border-radius: var(--r-sm); flex: none; display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .02em; font-family: var(--font); }
 .ft.form { background: var(--btn); }
+.ft.app { background: #107C10; }
 .ft.pdf { background: var(--pdf); } .ft.docx, .ft.doc { background: var(--word); } .ft.xlsx { background: var(--excel); } .ft.pptx { background: var(--ppt); }
 .ft.png, .ft.jpg, .ft.jpeg { background: var(--img); } .ft.mp4 { background: var(--vid); } .ft.link, .ft.page { background: transparent; color: var(--link); border: 1px solid var(--stroke-2); }
 .row .tt { flex: 1; min-width: 0; }
