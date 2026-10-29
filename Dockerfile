@@ -8,7 +8,7 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 WORKDIR /app
 COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+RUN SKIP_CARBON_PIP=1 npm install --omit=dev --no-audit --no-fund
 COPY carbon/requirements.txt carbon/requirements.txt
 RUN pip install --no-cache-dir -r carbon/requirements.txt
 COPY . .

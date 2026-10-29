@@ -37,6 +37,14 @@ The quickest way is the Blueprint, which creates the web service **and** its dat
 
 > Without `DATABASE_URL` the app saves submissions to the server's own disk. That is fine for trying it out, but Render wipes that disk on every deploy, so always connect Postgres for real use. The dashboard shows a warning until you do.
 
+## If Carbon says it isn't available
+
+The page now says why. Check the **Logs** tab of the service in Render for lines starting with `[carbon]`.
+
+- **Best fix:** deploy with the Blueprint (Docker). It installs Python and starts both parts.
+- **On a plain Node web service** the hub tries to install and start the carbon platform itself. Set the build command to `npm install` and the start command to `npm start`. If the log says Python isn't available, switch to the Blueprint.
+- **Keep carbon data safe:** add a disk to the service (Render → service → Disks, mount path `/var/data`). Without one, carbon data is lost on every deploy.
+
 ## Email alerts (Microsoft 365)
 
 The defaults in `render.yaml` point at Microsoft 365 (`smtp.office365.com`, port 587).

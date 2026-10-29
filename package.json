@@ -5,7 +5,8 @@
   "main": "server.js",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "node -e \"try{require('./scripts/install-carbon.js')}catch(e){console.log('[carbon] skipped:',e.message)}\""
   },
   "engines": {
     "node": ">=18"

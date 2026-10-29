@@ -157,6 +157,43 @@ function serveStatic(req, res, urlPath) {
 
 // ---------- carbon platform (Python app running alongside, mounted at /carbon) ----------
 const CARBON = new URL(process.env.CARBON_URL || 'http://127.0.0.1:5001');
+let carbonProblem = '';
+// With the Docker setup, start.sh starts the carbon platform and sets CARBON_URL.
+// Otherwise (e.g. a plain Node service on Render) the hub starts it itself.
+function startCarbon() {
+  const { spawn, spawnSync } = require('child_process');
+  const dir = path.join(__dirname, 'carbon');
+  const py = ['python3', 'python'].find(p => { try { return spawnSync(p, ['--version']).status === 0; } catch { return false; } });
+  if (!py) { carbonProblem = 'Python is not installed on this server.'; console.error('[carbon] ' + carbonProblem + ' Deploy with the Docker setup in render.yaml.'); return; }
+  const deps = path.join(dir, '.pydeps');
+  const env = Object.assign({}, process.env, {
+    CARBON_PREFIX: '/carbon',
+    PYTHONPATH: [deps, process.env.PYTHONPATH].filter(Boolean).join(path.delimiter),
+    DATABASE_PATH: process.env.DATABASE_PATH || (fs.existsSync('/var/data') ? '/var/data/swcarbon.db' : path.join(__dirname, 'data', 'swcarbon.db')),
+    SECRET_KEY: process.env.SECRET_KEY || crypto.createHash('sha256').update('swc:' + SECRET).digest('hex')
+  });
+  fs.mkdirSync(path.dirname(env.DATABASE_PATH), { recursive: true });
+  const check = spawnSync(py, ['-c', 'import flask, openpyxl'], { cwd: dir, env });
+  if (check.status !== 0) { carbonProblem = 'The carbon platform\'s Python packages are not installed.'; console.error('[carbon] ' + carbonProblem + ' ' + String(check.stderr).trim().split('\n').pop()); return; }
+  const hasGunicorn = spawnSync(py, ['-c', 'import gunicorn'], { cwd: dir, env }).status === 0;
+  const args = hasGunicorn
+    ? ['-m', 'gunicorn', 'app:app', '--workers', '2', '--threads', '4', '--timeout', '200', '--bind', `127.0.0.1:${CARBON.port}`]
+    : ['-c', `from app import app; from werkzeug.serving import run_simple; run_simple('127.0.0.1', ${CARBON.port}, app, threaded=True)`];
+  let tries = 0;
+  const run = () => {
+    const child = spawn(py, args, { cwd: dir, env, stdio: 'inherit' });
+    console.log(`[carbon] started (${hasGunicorn ? 'gunicorn' : 'built-in server'}), data at ${env.DATABASE_PATH}`);
+    carbonProblem = '';
+    child.on('exit', code => {
+      carbonProblem = `The carbon platform stopped (exit code ${code}).`;
+      console.error('[carbon] ' + carbonProblem + ' Restarting…');
+      if (++tries < 20) setTimeout(run, Math.min(30e3, 1000 * tries));
+    });
+    process.on('exit', () => { try { child.kill(); } catch { } });
+  };
+  run();
+}
+if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon();
 function proxyCarbon(req, res) {
   const headers = Object.assign({}, req.headers, {
     'x-forwarded-for': clientIp(req),
@@ -176,7 +213,7 @@ function proxyCarbon(req, res) {
       <body style="font-family:'Segoe UI',Arial,sans-serif;background:#F0F0F0;margin:0;display:grid;place-items:center;min-height:100vh;color:#242424">
       <div style="background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.14);padding:28px;max-width:420px;margin:16px">
       <h1 style="font-size:20px;margin:0 0 8px">The carbon platform isn’t available right now</h1>
-      <p style="color:#616161;margin:0 0 16px">It may still be starting up. Wait a few seconds and try again.</p>
+      <p style="color:#616161;margin:0 0 16px">${carbonProblem ? carbonProblem.replace(/[<>&]/g, '') + ' Check the server log on Render for details.' : 'It may still be starting up. Wait a few seconds and try again.'}</p>
       <a href="" style="display:inline-block;background:#0F6CBD;color:#fff;padding:7px 14px;border-radius:4px;text-decoration:none;font-weight:600">Try again</a>
       <a href="/" style="margin-left:12px;color:#0F6CBD">Back to the hub</a></div></body>`);
   });
