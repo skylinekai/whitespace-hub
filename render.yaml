@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: whitespace-hub
+    runtime: static
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
