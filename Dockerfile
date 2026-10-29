@@ -16,6 +16,7 @@ COPY . .
 ENV NODE_ENV=production \
     CARBON_PREFIX=/carbon \
     CARBON_URL=http://127.0.0.1:5001 \
+    CARBON_TRUST_HUB=1 \
     PYTHONUNBUFFERED=1
 EXPOSE 10000
 CMD ["bash", "start.sh"]

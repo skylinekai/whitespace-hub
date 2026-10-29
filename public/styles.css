@@ -2,7 +2,7 @@
    Layout: blue app bar, folder pane on the left, one rounded content pane on a grey canvas. */
 :root {
   --brand: #0F6CBD; --brand-hover: #115EA3; --brand-press: #0C3B5E; --brand-tint: #EBF3FC; --brand-tint-2: #CFE4FA; --brand-fg: #0F6CBD;
-  --bar: #E3008C; --bar-fg: #FFFFFF; --btn: #0F6CBD; --btn-hover: #115EA3; --btn-press: #0C3B5E;
+  --bar: #0F6CBD; --bar-fg: #FFFFFF; --btn: #0F6CBD; --btn-hover: #115EA3; --btn-press: #0C3B5E;
   --canvas: #F0F0F0; --pane: #FFFFFF; --pane-2: #FAFAFA; --hover: #F5F5F5; --press: #E0E0E0;
   --fg: #242424; --fg-2: #424242; --fg-3: #616161; --fg-4: #707070;
   --stroke: #E0E0E0; --stroke-2: #D1D1D1; --stroke-input: #D1D1D1; --stroke-under: #616161;
@@ -19,7 +19,7 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --brand: #479EF5; --brand-hover: #62ABF5; --brand-press: #2886DE; --brand-tint: #082338; --brand-tint-2: #0E4775; --brand-fg: #62ABF5;
-  --bar: #A3005F; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
+  --bar: #0F548C; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
   --canvas: #141414; --pane: #292929; --pane-2: #242424; --hover: #333333; --press: #3D3D3D;
   --fg: #FFFFFF; --fg-2: #E0E0E0; --fg-3: #ADADAD; --fg-4: #999999;
   --stroke: #3D3D3D; --stroke-2: #525252; --stroke-input: #525252; --stroke-under: #ADADAD;
@@ -29,7 +29,7 @@
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --brand: #479EF5; --brand-hover: #62ABF5; --brand-press: #2886DE; --brand-tint: #082338; --brand-tint-2: #0E4775; --brand-fg: #62ABF5;
-  --bar: #A3005F; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
+  --bar: #0F548C; --bar-fg: #FFFFFF; --btn: #115EA3; --btn-hover: #0F6CBD; --btn-press: #0C3B5E;
   --canvas: #141414; --pane: #292929; --pane-2: #242424; --hover: #333333; --press: #3D3D3D;
   --fg: #FFFFFF; --fg-2: #E0E0E0; --fg-3: #ADADAD; --fg-4: #999999;
   --stroke: #3D3D3D; --stroke-2: #525252; --stroke-input: #525252; --stroke-under: #ADADAD;
@@ -277,3 +277,17 @@ input[type=date].ctl, input[type=datetime-local].ctl { max-width: 260px; }
 .toast.ok > svg { color: var(--success); } .toast.error > svg { color: var(--danger); }
 .toast span { flex: 1; }
 .toast .btn { min-width: 0; height: 24px; padding: 0 4px; }
+
+/* ---------- account menu and dialog ---------- */
+.avatar { width: 32px; height: 32px; border-radius: 50%; border: 0; background: #fff; color: #0F6CBD; display: grid; place-items: center; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 4px; flex: none; }
+.avatar:hover { box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+.avatar.big { width: 40px; height: 40px; font-size: 14px; background: var(--brand-tint); color: var(--brand-fg); cursor: default; }
+.ctxmenu.acct { min-width: 260px; }
+.ctxmenu .who { display: flex; gap: 12px; align-items: center; padding: 10px 10px 12px; border-bottom: 1px solid var(--stroke); margin-bottom: 4px; }
+.ctxmenu .who b { display: block; }
+.ctxmenu .who small { display: block; color: var(--fg-3); font-size: 12px; }
+.ctxmenu .who em { display: inline-block; font-style: normal; font-size: 11px; font-weight: 600; color: var(--brand-fg); background: var(--brand-tint); border-radius: 10px; padding: 0 8px; margin-top: 4px; }
+.ctxmenu .sep { height: 1px; background: var(--stroke); margin: 4px 0; }
+.overlay { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.4); display: grid; place-items: center; padding: 16px max(16px, env(safe-area-inset-left, 0px)); }
+.dialog { width: 100%; max-width: 440px; background: var(--pane); border-radius: var(--r-lg); box-shadow: var(--shadow-28); padding: 24px; }
+.dtitle { font-size: 20px; line-height: 28px; font-weight: 600; margin: 0; }

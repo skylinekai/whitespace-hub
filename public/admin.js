@@ -16,12 +16,17 @@
     back: 'M9.2 16.4a.5.5 0 0 0 .7-.7L4.7 10.5H16.5a.5.5 0 0 0 0-1H4.7l5.2-5.2a.5.5 0 0 0-.7-.7L3.1 9.6a.5.5 0 0 0 0 .8l6.1 6Z',
     err: 'M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 10.5a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6ZM10 6a.5.5 0 0 0-.5.4v4.6a.5.5 0 0 0 1 0V6.5A.5.5 0 0 0 10 6Z',
     attach: 'M4.8 10.9 10.6 5a3 3 0 0 1 4.2 4.3l-6.4 6.3a1.7 1.7 0 0 1-2.4-2.4l5.3-5.3a.5.5 0 0 0-.7-.7l-5.3 5.3a2.7 2.7 0 0 0 3.8 3.8l6.4-6.3A4 4 0 1 0 9.9 4.3l-5.8 5.9a.5.5 0 0 0 .7.7Z',
+    people: 'M7.5 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-2 3a2 2 0 1 1 4 0 2 2 0 0 1-4 0ZM14 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-1 2a1 1 0 1 1 2 0 1 1 0 0 1-2 0ZM3.5 10C2.7 10 2 10.7 2 11.5v.3c0 1.6 1.9 3.2 5.5 3.2s5.5-1.6 5.5-3.2v-.3c0-.8-.7-1.5-1.5-1.5h-8ZM3 11.5c0-.3.2-.5.5-.5h8c.3 0 .5.2.5.5v.3c0 .9-1.3 2.2-4.5 2.2S3 12.7 3 11.8v-.3Zm11 2.5c-.6 0-1.2-.1-1.7-.2.2-.3.4-.6.5-1h1.2c2.2 0 3-1 3-1.6v-.2c0-.3-.2-.5-.5-.5h-2.6c-.1-.4-.3-.7-.6-1H16.5c.8 0 1.5.7 1.5 1.5v.2C18 12.6 16.6 14 14 14Z',
+    add: 'M10 3a.5.5 0 0 1 .5.5v6h6a.5.5 0 0 1 0 1h-6v6a.5.5 0 0 1-1 0v-6h-6a.5.5 0 0 1 0-1h6v-6c0-.3.2-.5.5-.5Z',
+    key: 'M12.5 2a5.5 5.5 0 0 1 0 11c-.5 0-.9 0-1.4-.2L9.9 14H8.5v1.5c0 .3-.2.5-.5.5H6.5v1.5c0 .3-.2.5-.5.5H2.5a.5.5 0 0 1-.5-.5v-2.3c0-.4.2-.8.4-1.1l4.8-4.8A5.5 5.5 0 0 1 12.5 2Zm0 1a4.5 4.5 0 0 0-4.3 5.9l.1.3-.2.2-5 5-.1.4V17h3v-1.5c0-.3.2-.5.5-.5h1.5v-1.5c0-.3.2-.5.5-.5h1.8l1.3-1.3.3.1A4.5 4.5 0 1 0 12.5 3ZM14 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z',
+    copy: 'M8 2a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8ZM7 4c0-.6.4-1 1-1h6c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H8a1 1 0 0 1-1-1V4ZM4 6a2 2 0 0 1 1-1.7V14.5C5 16 6.3 17 7.5 17h6.2c-.4.6-1 1-1.7 1H7.5A3.5 3.5 0 0 1 4 14.5V6Z',
     warn: 'M8.7 2.8a1.5 1.5 0 0 1 2.6 0l6.5 11.9a1.5 1.5 0 0 1-1.3 2.3H3.5a1.5 1.5 0 0 1-1.3-2.3L8.7 2.8ZM10 13a.8.8 0 1 0 0 1.5.8.8 0 0 0 0-1.5Zm0-6.5a.5.5 0 0 0-.5.4v4.6a.5.5 0 0 0 1 0V7a.5.5 0 0 0-.5-.5Z'
   };
   const icon = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true"><path d="${P[n]}"/></svg>`;
   async function api(url, opts) {
     const r = await fetch(url, Object.assign({ credentials: 'same-origin' }, opts));
-    if (r.status === 401 && !url.endsWith('/login')) { showLogin(); throw new Error('signed out'); }
+    if (r.status === 401) { showLogin(); throw new Error('signed out'); }
+    if (r.status === 403) { location.replace('/?notice=admin-only'); throw new Error('not admin'); }
     const out = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(out.error || 'Something went wrong.');
     return out;
@@ -38,25 +43,8 @@
   let me = null, summary = {}, state = { form: '', status: 'all', q: '', rows: [], total: 0, sel: null };
 
   // ---------- login ----------
-  function showLogin(msg) {
-    $('#searchWrap').hidden = true; $('#logout').hidden = true;
-    app.innerHTML = `<div class="login"><form id="lf">
-      <h1>Sign in to see submissions</h1>
-      <p class="subtitle" style="margin-bottom:16px">Use the dashboard password your administrator gave you.</p>
-      ${me && !me.passwordSet ? `<div class="bar-msg warn" style="margin:0 0 12px">${icon('warn')}<div>No password has been set yet. Add <b>ADMIN_PASSWORD</b> in the Render environment settings, then redeploy.</div></div>` : ''}
-      <div class="q" style="margin-top:0"><label for="pw">Password</label><input class="ctl" id="pw" type="password" autocomplete="current-password" required></div>
-      <div id="lerr" role="alert"></div>
-      <button class="btn primary large" style="width:100%;margin-top:16px" type="submit">Sign in</button>
-    </form></div>`;
-    if (msg) $('#lerr').innerHTML = `<div class="bar-msg error">${icon('err')}<div>${esc(msg)}</div></div>`;
-    $('#pw').focus();
-    $('#lf').addEventListener('submit', async e => {
-      e.preventDefault();
-      try { await api('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('#pw').value }) }); start(); }
-      catch (err) { $('#lerr').innerHTML = `<div class="bar-msg error">${icon('err')}<div>${esc(err.message)}</div></div>`; }
-    });
-  }
-  $('#logout').addEventListener('click', async () => { await fetch('/api/admin/logout', { method: 'POST' }); showLogin(); });
+  function showLogin() { location.replace('/login?next=' + encodeURIComponent('/admin') + location.hash); }
+  $('#logout').addEventListener('click', () => { location.href = '/logout'; });
 
   // ---------- layout ----------
   function shell() {
@@ -68,6 +56,7 @@
         <nav class="folders" id="folders" aria-label="Forms"></nav>
         <section class="listpane" aria-label="Submissions list"><div class="lhead" id="lhead"></div><div class="lbody" id="lbody"></div></section>
         <section class="readpane" aria-label="Reading pane"><div class="rbody" id="rbody"></div></section>
+        <section class="userspane" id="userspane" aria-label="Users" hidden></section>
       </div>`;
     const top = $('.mail');
     const extra = [...app.querySelectorAll('.banner')].reduce((n, b) => n + b.offsetHeight + 8, 0);
@@ -81,8 +70,9 @@
 
   function renderFolders() {
     const tot = Object.values(summary).reduce((a, s) => ({ total: a.total + s.total, unread: a.unread + s.unread }), { total: 0, unread: 0 });
-    const f = (id, label, n, unread, colorOrIcon) => `<a class="folder${n ? '' : ' empty-f'}" href="#f-${id || 'all'}"${state.form === id ? ' aria-current="page"' : ''}>${colorOrIcon}<span class="lbl">${esc(label)}</span>${unread ? `<span class="n unread">${unread}</span>` : n ? `<span class="n">${n}</span>` : ''}</a>`;
+    const f = (id, label, n, unread, colorOrIcon) => `<a class="folder${n ? '' : ' empty-f'}" href="#f-${id || 'all'}"${state.view !== 'users' && state.form === id ? ' aria-current="page"' : ''}>${colorOrIcon}<span class="lbl">${esc(label)}</span>${unread ? `<span class="n unread">${unread}</span>` : n ? `<span class="n">${n}</span>` : ''}</a>`;
     $('#folders').innerHTML = f('', 'All submissions', tot.total, tot.unread, icon('inbox', 'i ic')) +
+      `<a class="folder" href="#users"${state.view === 'users' ? ' aria-current="page"' : ''}>${icon('people', 'i ic')}<span class="lbl">Users</span></a>` +
       GROUPS.map(g => {
         const has = g.forms.some(id => summary[id]);
         const unread = g.forms.reduce((n, id) => n + (summary[id] ? summary[id].unread : 0), 0);
@@ -165,9 +155,104 @@
     };
   }
 
+
+  // ---------- users ----------
+  const initials = n => String(n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const tempPw = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; const b = new Uint32Array(10); crypto.getRandomValues(b); return 'Ws-' + [...b].map(x => a[x % a.length]).join(''); };
+  const when = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
+  async function copy(text, btn) {
+    try { await navigator.clipboard.writeText(text); btn.innerHTML = icon('check') + 'Copied'; setTimeout(() => { btn.innerHTML = icon('copy') + 'Copy'; }, 1800); }
+    catch { const r = document.createRange(); r.selectNodeContents(btn.previousElementSibling); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  }
+  function credsNote(user, pw, verb) {
+    return `<div class="bar-msg ok creds">${icon('check')}<div style="flex:1">${verb} for <b>${esc(user.name)}</b>. Send them these details, then they can change the password from their account menu.
+      <div class="credline"><span>Email</span><code>${esc(user.email)}</code></div>
+      <div class="credline"><span>Password</span><code class="pwv">${esc(pw)}</code><button class="btn subtle cp" type="button">${icon('copy')}Copy</button></div>
+      <div class="credline"><span>Sign in at</span><code>${esc(location.origin)}/login</code></div></div></div>`;
+  }
+  async function renderUsers(note) {
+    const pane = $('#userspane');
+    let list;
+    try { list = await api('/api/admin/users'); } catch (e) { pane.innerHTML = `<div class="blank-state"><div>${esc(e.message)}</div></div>`; return; }
+    const meId = me.user.id;
+    const admins = list.filter(u => u.role === 'admin').length;
+    pane.innerHTML = `
+      <div class="uhead"><div><h1>Users</h1><div class="meta">${list.length} ${list.length === 1 ? 'person' : 'people'} · Admins can see submissions, manage users and rename folders. Viewers can use the hub, forms and documents, and see the carbon platform read-only.</div></div>
+        <button class="btn primary" type="button" id="addBtn">${icon('add')}Add user</button></div>
+      <div id="unote">${note || ''}</div>
+      <form class="addform" id="addForm" hidden novalidate>
+        <h2>Add a user</h2>
+        <div class="agrid">
+          <div class="q"><label for="nuName">Name</label><input class="ctl" id="nuName" autocomplete="off" placeholder="e.g. Jo Bloggs"></div>
+          <div class="q"><label for="nuEmail">Email</label><input class="ctl" id="nuEmail" type="email" autocomplete="off" placeholder="name@skylinewhitespace.com"></div>
+          <fieldset class="q"><legend>Permission</legend><div class="seg"><label><input type="radio" name="nuRole" value="viewer" checked><span>Viewer</span></label><label><input type="radio" name="nuRole" value="admin"><span>Admin</span></label></div></fieldset>
+          <div class="q"><label for="nuPw">Temporary password</label><div class="pwrow"><input class="ctl" id="nuPw" autocomplete="off" spellcheck="false"><button class="btn subtle" type="button" id="nuGen" title="Make a new password">New</button></div></div>
+        </div>
+        <div id="aerr" role="alert"></div>
+        <div class="cmdbar" style="gap:8px;margin-top:14px"><button class="btn primary" type="submit">Create account</button><button class="btn" type="button" id="addCancel">Cancel</button></div>
+      </form>
+      <div class="utable" role="table" aria-label="Users">
+        <div class="urow uhd" role="row"><span role="columnheader">Name</span><span role="columnheader">Permission</span><span role="columnheader">Last signed in</span><span role="columnheader"><span class="sr">Actions</span></span></div>
+        ${list.map(u => `<div class="urow" role="row" data-id="${u.id}">
+          <span class="uname" role="cell"><span class="ava">${esc(initials(u.name))}</span><span><b>${esc(u.name)}${u.id === meId ? ' <em>(you)</em>' : ''}</b><small>${esc(u.email)}</small></span></span>
+          <span role="cell"><select class="ctl role" aria-label="Permission for ${esc(u.name)}"${u.role === 'admin' && admins === 1 ? ' title="There must be at least one admin"' : ''}><option value="admin"${u.role === 'admin' ? ' selected' : ''}>Admin</option><option value="viewer"${u.role === 'viewer' ? ' selected' : ''}>Viewer</option></select></span>
+          <span role="cell" class="last">${when(u.lastLogin)}</span>
+          <span role="cell" class="uact"><button class="cmd reset" type="button">${icon('key')}Reset password</button>${u.id === meId ? '' : `<button class="cmd remove" type="button" style="color:var(--danger)">${icon('del')}Remove</button>`}</span>
+          <div class="uslot"></div>
+        </div>`).join('')}
+      </div>`;
+    const form = $('#addForm');
+    $('#addBtn').onclick = () => { form.hidden = false; $('#nuPw').value = tempPw(); $('#nuName').focus(); };
+    $('#addCancel').onclick = () => { form.hidden = true; $('#aerr').innerHTML = ''; };
+    $('#nuGen').onclick = () => { $('#nuPw').value = tempPw(); };
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const body = { name: $('#nuName').value, email: $('#nuEmail').value, role: form.querySelector('[name=nuRole]:checked').value, password: $('#nuPw').value };
+      try {
+        const u = await api('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        renderUsers(credsNote(u, body.password, 'Account created'));
+      } catch (x) { $('#aerr').innerHTML = `<div class="bar-msg error">${icon('err')}<div>${esc(x.message)}</div></div>`; }
+    };
+    pane.querySelectorAll('.urow[data-id]').forEach(row => {
+      const id = Number(row.dataset.id), u = list.find(x => x.id === id), slot = row.querySelector('.uslot');
+      const fail = m => { slot.innerHTML = `<div class="bar-msg error">${icon('err')}<div>${esc(m)}</div></div>`; };
+      row.querySelector('.role').onchange = async e => {
+        try { await api('/api/admin/users/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: e.target.value }) });
+          if (id === meId && e.target.value !== 'admin') { location.replace('/?notice=admin-only'); return; }
+          renderUsers(`<div class="bar-msg ok">${icon('check')}<div>${esc(u.name)} is now ${e.target.value === 'admin' ? 'an Admin' : 'a Viewer'}.</div></div>`);
+        } catch (x) { e.target.value = u.role; fail(x.message); }
+      };
+      row.querySelector('.reset').onclick = () => {
+        const pw = tempPw();
+        slot.innerHTML = `<div class="confirm" style="background:var(--pane-2)"><span style="flex:1">Give ${esc(u.name)} a new temporary password? They’ll be signed out everywhere.</span><button class="btn" type="button" data-no>Cancel</button><button class="btn primary" type="button" data-yes>Reset password</button></div>`;
+        slot.querySelector('[data-no]').onclick = () => { slot.innerHTML = ''; };
+        slot.querySelector('[data-yes]').onclick = async () => {
+          try { await api('/api/admin/users/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+            if (id === meId) { location.replace('/login'); return; }
+            renderUsers(credsNote(u, pw, 'Password reset'));
+          } catch (x) { fail(x.message); }
+        };
+      };
+      const rm = row.querySelector('.remove');
+      if (rm) rm.onclick = () => {
+        slot.innerHTML = `<div class="confirm"><span style="flex:1">Remove ${esc(u.name)}? They won’t be able to sign in any more. Their form submissions are kept.</span><button class="btn" type="button" data-no>Keep</button><button class="btn primary" style="background:var(--danger)" type="button" data-yes>Remove</button></div>`;
+        slot.querySelector('[data-no]').onclick = () => { slot.innerHTML = ''; };
+        slot.querySelector('[data-yes]').onclick = async () => {
+          try { await api('/api/admin/users/' + id, { method: 'DELETE' }); renderUsers(`<div class="bar-msg ok">${icon('check')}<div>${esc(u.name)} has been removed.</div></div>`); }
+          catch (x) { fail(x.message); }
+        };
+      };
+    });
+    pane.querySelectorAll('.creds .cp').forEach(b => { b.onclick = () => copy(b.previousElementSibling.textContent, b); });
+  }
   // ---------- events & routing ----------
   function onHash() {
     const h = location.hash.slice(1);
+    const usersMode = h === 'users';
+    $('#mail').classList.toggle('users-mode', usersMode); $('#userspane').hidden = !usersMode;
+    $('#searchWrap').hidden = usersMode;
+    if (usersMode) { state.view = 'users'; renderFolders(); return renderUsers(); }
+    if (state.view === 'users') { state.view = ''; state.rows = []; }
     if (h.startsWith('s-')) { const id = Number(h.slice(2)); return openSub(id); }
     const form = h.startsWith('f-') && h !== 'f-all' ? h.slice(2) : '';
     if (form !== state.form || !state.rows.length) { state.form = form; state.sel = null; renderFolders(); loadList(); blankReader(); }
@@ -175,7 +260,8 @@
   async function start() {
     me = await fetch('/api/admin/me').then(r => r.json());
     try { const names = await fetch('/api/dept-names').then(r => r.json()); GROUPS.forEach(g => { if (names[g.id]) g.name = names[g.id]; }); } catch { }
-    if (!me.signedIn) return showLogin();
+    if (!me.user) return showLogin();
+    if (!me.signedIn) return location.replace('/?notice=admin-only');
     shell();
     $('#lbody').addEventListener('click', e => {
       const m = e.target.closest('.msg'); if (m) { const id = Number(m.dataset.id); history.replaceState(null, '', '#s-' + id); openSub(id); }
@@ -188,7 +274,7 @@
     const h = location.hash.slice(1);
     if (h.startsWith('s-')) { await loadList(); openSub(Number(h.slice(2))); }
     else onHash();
-    if (!state.rows.length && !h.startsWith('s-')) await loadList();
+    if (!state.rows.length && !h.startsWith('s-') && h !== 'users') await loadList();
   }
   start();
 })();

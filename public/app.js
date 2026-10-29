@@ -36,6 +36,9 @@
     inbox: 'M5.4 3h9.2c.9 0 1.6.6 1.9 1.4l1.4 5.3v4.8c0 1.4-1.1 2.5-2.5 2.5h-11A2.5 2.5 0 0 1 2 14.5V9.7l1.4-5.3C3.7 3.6 4.5 3 5.4 3Zm0 1a1 1 0 0 0-1 .7L3.2 9H7c.3 0 .5.2.5.5a2.5 2.5 0 0 0 5 0c0-.3.2-.5.5-.5h3.8l-1.2-4.3a1 1 0 0 0-1-.7H5.4ZM3 10v4.5c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5V10h-3.5a3.5 3.5 0 0 1-7 0H3Z',
     bolt: 'M7.4 2.3c.1-.2.3-.3.5-.3h5.6c.4 0 .6.4.5.7L12.4 7H15c.4 0 .7.5.4.8l-7.5 9.6c-.3.4-1 .1-.9-.4l1.2-5.5H5.5a.5.5 0 0 1-.5-.6l2.4-8.6ZM8.3 3 6.1 10.5h2.7c.3 0 .5.3.5.6l-.9 4.1L14 8H11.6a.5.5 0 0 1-.4-.7L12.7 3H8.3Z',
     leaf: 'M16.5 3.1c.3 0 .5.3.5.5 0 5.4-1.6 9-4 11.1A7.4 7.4 0 0 1 4.5 16l-.9 1.7a.5.5 0 0 1-.9-.4l.9-1.8C2.4 12.7 3 9.5 5.2 7.2 7.6 4.8 11.5 3.3 16.5 3.1Zm-.5 1c-4.5.3-8 1.7-10 3.8-1.9 2-2.4 4.7-1 7.1l.6-1.1C7 11 9.4 9 12.6 7.6a.5.5 0 0 1 .4.9C9.9 9.9 7.6 11.8 6 14.7l-.6 1.1c2.3 1 5 .6 7-1.1 2.1-1.8 3.5-5 3.6-10.6Z',
+    people: 'M7.5 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-2 3a2 2 0 1 1 4 0 2 2 0 0 1-4 0ZM14 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-1 2a1 1 0 1 1 2 0 1 1 0 0 1-2 0ZM3.5 10C2.7 10 2 10.7 2 11.5v.3c0 1.6 1.9 3.2 5.5 3.2s5.5-1.6 5.5-3.2v-.3c0-.8-.7-1.5-1.5-1.5h-8ZM3 11.5c0-.3.2-.5.5-.5h8c.3 0 .5.2.5.5v.3c0 .9-1.3 2.2-4.5 2.2S3 12.7 3 11.8v-.3Zm11 2.5c-.6 0-1.2-.1-1.7-.2.2-.3.4-.6.5-1h1.2c2.2 0 3-1 3-1.6v-.2c0-.3-.2-.5-.5-.5h-2.6c-.1-.4-.3-.7-.6-1H16.5c.8 0 1.5.7 1.5 1.5v.2C18 12.6 16.6 14 14 14Z',
+    signout: 'M8.5 11.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM11 3.5c0-.3-.2-.5-.5-.5H5.6c-.9 0-1.6.7-1.6 1.6v10.8c0 .9.7 1.6 1.6 1.6h4.9c.3 0 .5-.2.5-.5V3.5ZM10 4v12H5.6a.6.6 0 0 1-.6-.6V4.6c0-.3.3-.6.6-.6H10Zm3.9 3.1a.5.5 0 0 1 .7 0l2.6 2.5c.2.2.2.6 0 .8l-2.6 2.5a.5.5 0 0 1-.7-.7l1.8-1.7H12.5a.5.5 0 0 1 0-1h3.2l-1.8-1.7a.5.5 0 0 1 0-.7Z',
+    key: 'M12.5 2a5.5 5.5 0 0 1 0 11c-.5 0-.9 0-1.4-.2L9.9 14H8.5v1.5c0 .3-.2.5-.5.5H6.5v1.5c0 .3-.2.5-.5.5H2.5a.5.5 0 0 1-.5-.5v-2.3c0-.4.2-.8.4-1.1l4.8-4.8A5.5 5.5 0 0 1 12.5 2Zm0 1a4.5 4.5 0 0 0-4.3 5.9l.1.3-.2.2-5 5-.1.4V17h3v-1.5c0-.3.2-.5.5-.5h1.5v-1.5c0-.3.2-.5.5-.5h1.8l1.3-1.3.3.1A4.5 4.5 0 1 0 12.5 3ZM14 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z',
     rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
     undo: 'M4.5 3a.5.5 0 0 1 .5.5v3.3A7 7 0 1 1 3 10.5a.5.5 0 0 1 1 0 6 6 0 1 0 1.8-4.3H8.5a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5v-4c0-.3.2-.5.5-.5Z',
     eraser: 'M11.2 3.4a2 2 0 0 1 2.8 0l2.6 2.6a2 2 0 0 1 0 2.8L10.4 15H16.5a.5.5 0 0 1 0 1H8.1a2 2 0 0 1-1.5-.6L3.4 12.2a2 2 0 0 1 0-2.8l7.8-6Zm-2.5 4L4.1 10a1 1 0 0 0 0 1.4l3.2 3.2c.4.4 1 .4 1.4 0l3.6-3.6-3.6-3.6Z'
@@ -71,6 +74,9 @@
     del(k) { try { localStorage.removeItem(k); } catch { } }
   };
   let favs = store.get('wsh-favs', []);
+  let ME = null;
+  const isAdminMe = () => !!ME && ME.role === 'admin';
+  const toLogin = () => location.replace('/login?next=' + encodeURIComponent(location.pathname + location.search) + location.hash);
 
   // ---------- shell ----------
   const pane = $('#pane'), q = $('#q'), folders = $('#folders');
@@ -90,7 +96,7 @@
       `<div class="grp">More</div>` +
       ['how-to-guides', 'essa-discount-card'].map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]) || '', active === id, byDept[id].c, id)).join('') +
       `<div class="grp">Apps</div>` + `<a class="folder" href="/carbon/">${icon('leaf', 'i ic')}<span class="lbl">Carbon platform</span></a>` +
-      `<div class="grp">Admin</div>` + `<a class="folder" href="/admin">${icon('inbox', 'i ic')}<span class="lbl">Submissions</span></a>`;
+      (isAdminMe() ? `<div class="grp">Admin</div>` + `<a class="folder" href="/admin">${icon('inbox', 'i ic')}<span class="lbl">Submissions</span></a>` + `<a class="folder" href="/admin#users">${icon('people', 'i ic')}<span class="lbl">Users</span></a>` : '');
   }
   const scrim = h('div', { class: 'scrim', hidden: true, onclick: () => toggleMenu(false) });
   document.body.append(scrim);
@@ -185,7 +191,7 @@
     pane.scrollTop = 0;
   }
   async function loadForms() {
-    try { const r = await fetch('/forms.json'); FORMS = Object.fromEntries((await r.json()).map(f => [f.id, f])); }
+    try { const r = await fetch('/forms.json'); if (r.status === 401 || r.redirected) { toLogin(); return; } FORMS = Object.fromEntries((await r.json()).map(f => [f.id, f])); }
     catch { pane.innerHTML = `<div class="pane-inner"><div class="bar-msg error">${icon('err')}<div>The forms could not be loaded. Check your connection and refresh the page.</div></div></div>`; throw new Error('forms'); }
   }
   window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#form/')) q.value = ''; filter = 'all'; toggleMenu(false); route(); });
@@ -211,8 +217,7 @@
   // ---------- folder right-click menu: open, rename, reset ----------
   let menu = null, adminState = null;
   async function isAdminUser() {
-    if (adminState === null) { try { adminState = (await (await fetch('/api/admin/me')).json()).signedIn; } catch { adminState = false; } }
-    return adminState;
+    return isAdminMe();
   }
   function toast(html, kind = 'info') {
     document.querySelectorAll('.toast').forEach(t => t.remove());
@@ -249,7 +254,7 @@
   }
   async function startRename(id) {
     if (!(await isAdminUser())) {
-      toast(`${icon('info')}<span>Renaming a folder changes it for everyone, so it needs the Submissions password. <a href="/admin">Sign in</a>, then come back and try again.</span>`);
+      toast(`${icon('info')}<span>Only admins can rename folders, because the new name shows for everyone.</span>`);
       return;
     }
     const a = folders.querySelector(`.folder[data-dept="${id}"]`); if (!a) return;
@@ -266,7 +271,7 @@
     try {
       const r = await fetch('/api/admin/dept-names/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
       const out = await r.json().catch(() => ({}));
-      if (r.status === 401) { adminState = false; throw new Error(out.error || 'Sign in to Submissions to rename folders.'); }
+      if (r.status === 401) { toLogin(); return; }
       if (!r.ok) throw new Error(out.error || 'The new name could not be saved.');
       applyNames(out); route();
       toast(`${icon('check')}<span>${name ? `Renamed to “${esc(name)}”.` : `Name reset to “${esc(byDept[id].orig)}”.`} Everyone will see this.</span>`, 'ok');
@@ -286,6 +291,78 @@
   folders.addEventListener('click', e => { if (pressed) { e.preventDefault(); pressed = false; } }, true);
   addEventListener('resize', closeMenu); pane.addEventListener('scroll', closeMenu);
   fetch('/api/dept-names').then(r => r.json()).then(m => { if (Object.keys(m).length) { applyNames(m); route(); } }).catch(() => { });
+
+  // ---------- account menu, change password ----------
+  const meBtn = $('#meBtn');
+  const initials = n => String(n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  function accountMenu() {
+    closeMenu();
+    const item = (ic, label, fn) => h('button', { class: 'mi', type: 'button', role: 'menuitem', html: icon(ic) + `<span>${esc(label)}</span>`, onclick: () => { closeMenu(); fn(); } });
+    menu = h('div', { class: 'ctxmenu acct', role: 'menu', 'aria-label': 'Your account' },
+      h('div', { class: 'who', html: `<span class="avatar big" aria-hidden="true">${esc(initials(ME.name))}</span><span><b>${esc(ME.name)}</b><small>${esc(ME.email)}</small><em>${ME.role === 'admin' ? 'Admin' : 'Viewer'}</em></span>` }),
+      item('key', 'Change password', changePassword),
+      isAdminMe() ? item('people', 'Manage users', () => { location.href = '/admin#users'; }) : null,
+      isAdminMe() ? item('inbox', 'Submissions', () => { location.href = '/admin'; }) : null,
+      h('div', { class: 'sep', role: 'separator' }),
+      item('signout', 'Sign out', () => { location.href = '/logout'; }));
+    document.body.append(menu);
+    const r = meBtn.getBoundingClientRect();
+    menu.style.top = (r.bottom + 6) + 'px';
+    menu.style.left = Math.max(8, r.right - menu.offsetWidth) + 'px';
+    menu.querySelector('.mi').focus();
+    setTimeout(() => document.addEventListener('pointerdown', outside, true));
+    menu.addEventListener('keydown', e => {
+      const items = [...menu.querySelectorAll('.mi')], i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { closeMenu(); meBtn.focus(); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      if (e.key === 'Tab') closeMenu();
+    });
+  }
+  meBtn.addEventListener('click', () => (menu && menu.classList.contains('acct')) ? closeMenu() : accountMenu());
+
+  function changePassword() {
+    const ov = h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'cpT' });
+    const box = h('form', { class: 'dialog', novalidate: true });
+    const field = (id, label, ac) => h('div', { class: 'q', style: 'margin-top:14px' }, h('label', { for: id }, label), h('input', { id, class: 'ctl', type: 'password', autocomplete: ac }));
+    const err = h('div', { role: 'alert' });
+    box.append(h('h2', { id: 'cpT', class: 'dtitle' }, 'Change password'),
+      h('p', { class: 'subtitle', style: 'margin:4px 0 0' }, 'Use at least 8 characters, including a number or symbol.'),
+      err, field('cpCur', 'Current password', 'current-password'), field('cpNew', 'New password', 'new-password'), field('cpNew2', 'Type the new password again', 'new-password'),
+      h('div', { class: 'cmdbar', style: 'justify-content:flex-end;margin-top:20px;gap:8px' },
+        h('button', { class: 'btn', type: 'button', onclick: () => ov.remove() }, 'Cancel'),
+        h('button', { class: 'btn primary', type: 'submit' }, 'Change password')));
+    ov.append(box); document.body.append(ov); $('#cpCur').focus();
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') ov.remove(); });
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    box.addEventListener('submit', async e => {
+      e.preventDefault();
+      const show = t => { err.className = 'bar-msg error'; err.innerHTML = icon('err') + `<div>${esc(t)}</div>`; };
+      if ($('#cpNew').value !== $('#cpNew2').value) return show('The two new passwords don’t match.');
+      try {
+        const r = await fetch('/api/me/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: $('#cpCur').value, password: $('#cpNew').value }) });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(out.error || 'Your password couldn’t be changed.');
+        ov.remove(); toast(`${icon('check')}<span>Password changed. You’ve been signed out on your other devices.</span>`, 'ok');
+      } catch (x) { show(x.message); }
+    });
+  }
+
+  async function loadMe() {
+    try {
+      const r = await fetch('/api/me');
+      if (r.status === 401) { toLogin(); return false; }
+      ME = await r.json();
+    } catch { return true; }
+    meBtn.textContent = initials(ME.name); meBtn.hidden = false; meBtn.title = `${ME.name} (${ME.role === 'admin' ? 'Admin' : 'Viewer'})`;
+    $('#inboxLink').hidden = !isAdminMe();
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('account')) changePassword();
+    if (qs.get('notice') === 'admin-only') toast(`${icon('info')}<span>That page is for admins. Ask an admin if you need access.</span>`);
+    if (qs.toString()) history.replaceState(null, '', location.pathname + location.hash);
+    renderFolders(activeFolder);
+    return true;
+  }
 
   // =====================================================================
   // Form renderer
@@ -580,6 +657,7 @@
       for (const [fid, list] of Object.entries(files)) if (vis.has(fid)) list.forEach(file => fd.append('file_' + fid, file, file.name));
       try {
         const r = await fetch(`/api/forms/${def.id}/submit`, { method: 'POST', body: fd });
+        if (r.status === 401) throw new Error('You’ve been signed out. Open the hub in a new tab, sign in, then come back and press Submit again.');
         const out = await r.json().catch(() => ({}));
         if (!r.ok) {
           if (out.fields) Object.entries(out.fields).forEach(([k, m]) => showFieldErr(k, m));
@@ -605,5 +683,5 @@
     return { id: def.id, destroy() { } };
   }
 
-  route();
+  loadMe().then(ok => { if (ok) route(); });
 })();

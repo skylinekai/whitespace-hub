@@ -1,0 +1,36 @@
+/* Sign-in page: white page, blue Whitespace logo, one centred card. */
+:root {
+  --blue: #0F6CBD; --blue-hover: #115EA3; --blue-press: #0C3B5E;
+  --ink: #242424; --muted: #616161; --line: #E0E0E0; --field: #F3F7FD; --field-line: #D6E4F5;
+  --danger: #C50F1F; --danger-bg: #FDF3F4;
+  --font: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: #FFFFFF; color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 22px; -webkit-font-smoothing: antialiased; }
+.wrap { min-height: 100%; display: grid; place-items: center; padding: 48px max(16px, env(safe-area-inset-left, 0px)) 72px max(16px, env(safe-area-inset-right, 0px)); }
+.card { width: 100%; max-width: 440px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 44px 40px 32px;
+  box-shadow: 0 12px 32px rgba(15, 108, 189, .08), 0 2px 6px rgba(0, 0, 0, .04); }
+.logo { display: block; width: 230px; max-width: 80%; height: auto; margin: 0 auto 14px; }
+.lead { text-align: center; color: var(--muted); margin: 0 0 28px; }
+label { display: block; font-weight: 600; margin: 18px 0 6px; }
+input { width: 100%; height: 48px; border: 1px solid var(--field-line); border-radius: 6px; background: var(--field); padding: 0 14px; font: inherit; color: var(--ink); }
+input:hover { border-color: #B4CDEB; }
+input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(15, 108, 189, .18); background: #fff; }
+.pw { position: relative; }
+.pw input { padding-right: 70px; }
+.pw button { position: absolute; right: 6px; top: 8px; height: 32px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.pw button:hover { background: rgba(15, 108, 189, .08); }
+.go { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; margin-top: 28px; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
+.go:hover { background: var(--blue-hover); }
+.go:active { background: var(--blue-press); }
+.go:disabled { opacity: .7; cursor: default; }
+.go:focus-visible, .pw button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.help { text-align: center; color: var(--muted); font-size: 13px; margin: 18px 0 0; }
+.msg { background: var(--danger-bg); border: 1px solid #EEACB2; color: var(--ink); border-radius: 6px; padding: 10px 12px; font-size: 14px; margin-bottom: 4px; }
+.foot { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); color: #9A9A9A; font-size: 12px; }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; border-right-color: transparent; animation: s .7s linear infinite; }
+@keyframes s { to { transform: rotate(360deg); } }
+@media (max-width: 480px) { .card { padding: 32px 22px 24px; border: 0; box-shadow: none; } .foot { position: static; text-align: center; padding-bottom: 12px; } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }

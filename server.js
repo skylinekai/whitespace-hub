@@ -36,21 +36,40 @@ async function readJson(req) { try { return JSON.parse((await readBody(req, 1e6)
 const clientIp = req => (String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()) || req.socket.remoteAddress || '';
 const isSecure = req => req.headers['x-forwarded-proto'] === 'https';
 
-// ---------- admin sign-in (one shared password, signed cookie) ----------
-const SECRET = process.env.SESSION_SECRET || crypto.createHash('sha256').update('wsh:' + (process.env.ADMIN_PASSWORD || '')).digest('hex');
-const sign = v => v + '.' + crypto.createHmac('sha256', SECRET).update(v).digest('base64url');
+// ---------- accounts and sign-in ----------
+const Auth = require('./lib/auth');
+let SECRET = process.env.SESSION_SECRET || '';
+let sessions = null;
+async function initAuth() {
+  if (!SECRET) {   // keep a stable secret in the database so sign-ins survive restarts
+    SECRET = await store.getSetting('sessionSecret');
+    if (!SECRET) { SECRET = crypto.randomBytes(32).toString('hex'); await store.setSetting('sessionSecret', SECRET); }
+  }
+  sessions = Auth.makeSessions(SECRET);
+  if ((await store.countUsers()) === 0) {
+    const s = Auth.SEED_ADMIN;
+    await store.createUser({ email: s.email, name: s.name, role: s.role, passwordHash: s.passwordHash });
+    console.log(`[auth] Created the first admin account: ${s.email}`);
+  }
+}
 function readCookie(req, name) {
   const m = (req.headers.cookie || '').split(/;\s*/).find(c => c.startsWith(name + '='));
   return m ? decodeURIComponent(m.slice(name.length + 1)) : null;
 }
-function isAdmin(req) {
-  const c = readCookie(req, 'wsh_admin');
-  if (!c || !process.env.ADMIN_PASSWORD) return false;
-  const v = c.slice(0, c.lastIndexOf('.'));
-  const good = sign(v);
-  if (good.length !== c.length || !crypto.timingSafeEqual(Buffer.from(good), Buffer.from(c))) return false;
-  return Number(v) > Date.now();
+const COOKIE = 'wsh_session';
+const sessionCookie = (req, user) => `${COOKIE}=${encodeURIComponent(sessions.issue(user))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${14 * 86400}${isSecure(req) ? '; Secure' : ''}`;
+const clearCookie = `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+async function currentUser(req) {
+  if (req._user !== undefined) return req._user;
+  const d = sessions.read(readCookie(req, COOKIE));
+  let u = d ? await store.getUser(d.u) : null;
+  if (u && (u.tokenVersion || 0) !== d.v) u = null;
+  return (req._user = u);
 }
+const pub = u => u && { id: u.id, email: u.email, name: u.name, role: u.role, lastLogin: u.lastLogin || null, createdAt: u.createdAt || null };
+const isAdmin = u => !!u && u.role === 'admin';
+const ROLES = ['admin', 'viewer'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 // Small in-memory rate limit, keyed by IP and action.
 const hits = new Map();
@@ -72,7 +91,7 @@ function answersFor(form, values, visible) {
     });
 }
 
-async function handleSubmit(req, res, formId) {
+async function handleSubmit(req, res, formId, user) {
   const form = byId[formId];
   if (!form) return json(res, 404, { error: 'This form no longer exists.' });
   if (limited(req, 'submit', 40, 10 * 60e3)) return json(res, 429, { error: 'Too many submissions from this connection. Wait a few minutes and try again.' });
@@ -109,8 +128,9 @@ async function handleSubmit(req, res, formId) {
   }
   const kept = files.filter(f => visible.has(f.fieldId));
   const answers = answersFor(form, values, visible);
-  const useful = answers.filter(a => a.value && !['radio', 'checkbox', 'rating', 'scale', 'dropdown', 'date', 'time', 'datetime'].includes(a.type));
-  const summary = (useful.length ? useful : answers.filter(a => a.value)).slice(0, 3).map(a => a.value.replace(/\s+/g, ' ')).join(' · ').slice(0, 240);
+  if (user) answers.unshift({ id: '_by', label: 'Submitted by', type: 'meta', value: `${user.name} (${user.email})` });
+  const useful = answers.filter(a => a.value && a.id !== '_by' && !['radio', 'checkbox', 'rating', 'scale', 'dropdown', 'date', 'time', 'datetime'].includes(a.type));
+  const summary = (useful.length ? useful : answers.filter(a => a.value && a.id !== '_by')).slice(0, 3).map(a => a.value.replace(/\s+/g, ' ')).join(' · ').slice(0, 240);
   const search = (form.name + ' ' + answers.map(a => a.value).join(' ')).toLowerCase().slice(0, 20000);
   try {
     const saved = await store.create({ formId: form.id, formName: form.name, summary, answers, search }, kept);
@@ -168,6 +188,7 @@ function startCarbon() {
   const deps = path.join(dir, '.pydeps');
   const env = Object.assign({}, process.env, {
     CARBON_PREFIX: '/carbon',
+    CARBON_TRUST_HUB: '1',
     PYTHONPATH: [deps, process.env.PYTHONPATH].filter(Boolean).join(path.delimiter),
     DATABASE_PATH: process.env.DATABASE_PATH || (fs.existsSync('/var/data') ? '/var/data/swcarbon.db' : path.join(__dirname, 'data', 'swcarbon.db')),
     SECRET_KEY: process.env.SECRET_KEY || crypto.createHash('sha256').update('swc:' + SECRET).digest('hex')
@@ -193,9 +214,13 @@ function startCarbon() {
   };
   run();
 }
-if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon();
-function proxyCarbon(req, res) {
-  const headers = Object.assign({}, req.headers, {
+function proxyCarbon(req, res, user) {
+  const headers = Object.assign({}, req.headers);
+  for (const k of Object.keys(headers)) if (k.startsWith('x-hub-')) delete headers[k];   // never trust these from the browser
+  Object.assign(headers, {
+    'x-hub-user-email': user.email,
+    'x-hub-user-name': encodeURIComponent(user.name),
+    'x-hub-user-role': user.role,
     'x-forwarded-for': clientIp(req),
     'x-forwarded-proto': isSecure(req) ? 'https' : 'http',
     'x-forwarded-host': req.headers.host || ''
@@ -220,30 +245,62 @@ function proxyCarbon(req, res) {
   req.pipe(up);
 }
 
+const safeNext = n => (typeof n === 'string' && /^\/(?!\/)/.test(n) && !n.startsWith('/login')) ? n : '/';
+
 // ---------- router ----------
 async function route(req, res) {
   const url = new URL(req.url, 'http://local');
   const p = url.pathname, m = req.method;
   let mt;
   if (p === '/healthz') return send(res, 200, 'ok');
-  if (p === '/carbon') return send(res, 301, '', { Location: '/carbon/' });
-  if (p.startsWith('/carbon/')) return proxyCarbon(req, res);
-  if ((mt = p.match(/^\/api\/forms\/(\d+)\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1]);
 
-  if (p === '/api/admin/login' && m === 'POST') {
+  // ----- signing in and out (open to everyone) -----
+  if (p === '/api/login' && m === 'POST') {
     if (limited(req, 'login', 10, 15 * 60e3)) return json(res, 429, { error: 'Too many attempts. Wait 15 minutes and try again.' });
-    const want = process.env.ADMIN_PASSWORD;
-    if (!want) return json(res, 503, { error: 'The dashboard password has not been set. Add ADMIN_PASSWORD in Render.' });
-    const got = String((await readJson(req)).password || '');
-    const a = crypto.createHash('sha256').update(got).digest(), b = crypto.createHash('sha256').update(want).digest();
-    if (!crypto.timingSafeEqual(a, b)) return json(res, 401, { error: 'That password is not right.' });
-    const days = 14;
-    return json(res, 200, { ok: true }, { 'Set-Cookie': `wsh_admin=${encodeURIComponent(sign(String(Date.now() + days * 864e5)))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${days * 86400}${isSecure(req) ? '; Secure' : ''}` });
+    const body = await readJson(req);
+    const email = String(body.email || '').trim().toLowerCase(), pw = String(body.password || '');
+    const u = email ? await store.getUserByEmail(email) : null;
+    const ok = Auth.verifyPassword(pw, u ? u.passwordHash : Auth.SEED_ADMIN.passwordHash) && !!u;
+    if (!ok) return json(res, 401, { error: 'That email or password isn’t right.' });
+    await store.updateUser(u.id, { lastLogin: new Date().toISOString() });
+    return json(res, 200, { ok: true, user: pub(u) }, { 'Set-Cookie': sessionCookie(req, u) });
   }
+  if ((p === '/api/logout' || p === '/api/admin/logout') && m === 'POST') return json(res, 200, { ok: true }, { 'Set-Cookie': clearCookie });
+  if (p === '/logout') return send(res, 302, '', { Location: '/login', 'Set-Cookie': clearCookie });
+  const OPEN = new Set(['/login', '/login.css', '/login.js', '/logo-black.png', '/favicon.svg', '/icon-192.png', '/icon-512.png', '/manifest.webmanifest']);
+  if (OPEN.has(p) && (m === 'GET' || m === 'HEAD')) {
+    if (p === '/login' && await currentUser(req)) return send(res, 302, '', { Location: safeNext(url.searchParams.get('next')) });
+    return serveStatic(req, res, p === '/login' ? '/login.html' : p);
+  }
+
+  // ----- everything below needs a signed-in user -----
+  const user = await currentUser(req);
+  if (!user) {
+    if (p.startsWith('/api/')) return json(res, 401, { error: 'Sign in to continue.' });
+    if (p.startsWith('/carbon/') && req.method !== 'GET') return send(res, 401, 'Sign in to continue.');
+    return send(res, 302, '', { Location: '/login?next=' + encodeURIComponent(p + url.search) });
+  }
+
+  if (p === '/carbon') return send(res, 301, '', { Location: '/carbon/' });
+  if (p.startsWith('/carbon/')) return proxyCarbon(req, res, user);
+  if ((mt = p.match(/^\/api\/forms\/(\d+)\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1], user);
+
+  if (p === '/api/me' && m === 'GET') return json(res, 200, pub(user));
+  if (p === '/api/me/password' && m === 'POST') {
+    if (limited(req, 'pw', 10, 15 * 60e3)) return json(res, 429, { error: 'Too many attempts. Wait 15 minutes and try again.' });
+    const body = await readJson(req);
+    if (!Auth.verifyPassword(String(body.current || ''), user.passwordHash)) return json(res, 400, { error: 'Your current password isn’t right.' });
+    const problem = Auth.passwordProblem(body.password);
+    if (problem) return json(res, 400, { error: problem });
+    const tokenVersion = (user.tokenVersion || 0) + 1;
+    await store.updateUser(user.id, { passwordHash: Auth.hashPassword(body.password), tokenVersion });
+    return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(req, Object.assign({}, user, { tokenVersion })) });
+  }
+
   // Department folder names (renamed from the hub's folder pane; shared by everyone)
   if (p === '/api/dept-names' && m === 'GET') return json(res, 200, (await store.getSetting('deptNames')) || {}, { 'Cache-Control': 'no-cache' });
   if ((mt = p.match(/^\/api\/admin\/dept-names\/([a-z0-9-]{1,60})$/)) && m === 'PUT') {
-    if (!isAdmin(req)) return json(res, 401, { error: 'Sign in to Submissions to rename folders.' });
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can rename folders.' });
     const name = String((await readJson(req)).name ?? '').replace(/\s+/g, ' ').trim();
     if (name.length > 60) return json(res, 400, { error: 'Keep folder names to 60 characters or fewer.' });
     const names = (await store.getSetting('deptNames')) || {};
@@ -251,11 +308,55 @@ async function route(req, res) {
     await store.setSetting('deptNames', names);
     return json(res, 200, names);
   }
-  if (p === '/api/admin/logout' && m === 'POST') return json(res, 200, { ok: true }, { 'Set-Cookie': 'wsh_admin=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0' });
-  if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(req), passwordSet: !!process.env.ADMIN_PASSWORD, storage: store.kind, email: !!process.env.SMTP_HOST });
+  if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(user), user: pub(user), storage: store.kind, email: !!process.env.SMTP_HOST });
+  if (p === '/admin' && !isAdmin(user)) return send(res, 302, '', { Location: '/?notice=admin-only' });
+
+  if (p.startsWith('/api/admin/') && !isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });
+
+  // ----- user management (admins) -----
+  if (p === '/api/admin/users' && m === 'GET') return json(res, 200, (await store.listUsers()).map(pub));
+  if (p === '/api/admin/users' && m === 'POST') {
+    const b2 = await readJson(req);
+    const email = String(b2.email || '').trim().toLowerCase(), name = String(b2.name || '').replace(/\s+/g, ' ').trim(), role = String(b2.role || 'viewer');
+    if (!name) return json(res, 400, { error: 'Enter the person’s name.', field: 'name' });
+    if (!EMAIL_RE.test(email)) return json(res, 400, { error: 'Enter an email address like name@skylinewhitespace.com.', field: 'email' });
+    if (!ROLES.includes(role)) return json(res, 400, { error: 'Choose Admin or Viewer.', field: 'role' });
+    const problem = Auth.passwordProblem(b2.password);
+    if (problem) return json(res, 400, { error: problem, field: 'password' });
+    if (await store.getUserByEmail(email)) return json(res, 409, { error: 'Someone with that email already has an account.', field: 'email' });
+    const u = await store.createUser({ email, name: name.slice(0, 80), role, passwordHash: Auth.hashPassword(b2.password) });
+    return json(res, 201, pub(u));
+  }
+  if ((mt = p.match(/^\/api\/admin\/users\/(\d+)$/))) {
+    const target = await store.getUser(Number(mt[1]));
+    if (!target) return json(res, 404, { error: 'That user no longer exists.' });
+    const admins = (await store.listUsers()).filter(u => u.role === 'admin');
+    const lastAdmin = target.role === 'admin' && admins.length === 1;
+    if (m === 'PATCH') {
+      const b2 = await readJson(req), f = {};
+      if ('name' in b2) { const n = String(b2.name || '').replace(/\s+/g, ' ').trim(); if (!n) return json(res, 400, { error: 'Enter a name.' }); f.name = n.slice(0, 80); }
+      if ('role' in b2) {
+        if (!ROLES.includes(b2.role)) return json(res, 400, { error: 'Choose Admin or Viewer.' });
+        if (b2.role !== 'admin' && lastAdmin) return json(res, 400, { error: 'There must be at least one admin. Make someone else an admin first.' });
+        f.role = b2.role;
+      }
+      if ('password' in b2) {
+        const problem = Auth.passwordProblem(b2.password);
+        if (problem) return json(res, 400, { error: problem });
+        f.passwordHash = Auth.hashPassword(b2.password); f.tokenVersion = (target.tokenVersion || 0) + 1;   // signs them out everywhere
+      }
+      await store.updateUser(target.id, f);
+      return json(res, 200, pub(await store.getUser(target.id)));
+    }
+    if (m === 'DELETE') {
+      if (target.id === user.id) return json(res, 400, { error: 'You can’t remove your own account.' });
+      if (lastAdmin) return json(res, 400, { error: 'There must be at least one admin.' });
+      await store.deleteUser(target.id);
+      return json(res, 200, { ok: true });
+    }
+  }
 
   if (p.startsWith('/api/admin/')) {
-    if (!isAdmin(req)) return json(res, 401, { error: 'Sign in to see submissions.' });
     if (p === '/api/admin/summary') return json(res, 200, await store.summary());
     if (p === '/api/admin/submissions' && m === 'GET') {
       const g = k => url.searchParams.get(k) || '';
@@ -293,5 +394,5 @@ const server = http.createServer((req, res) => {
   route(req, res).catch(e => { console.error(e); if (!res.headersSent) json(res, 500, { error: 'Something went wrong on the server.' }); });
 });
 server.requestTimeout = 10 * 60e3;
-store.init().then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
+store.init().then(initAuth).then(() => { if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon(); }).then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
   .catch(e => { console.error('Could not start storage:', e); process.exit(1); });

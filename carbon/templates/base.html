@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Carbon{% endblock %} · Carbon · Whitespace Hub</title>
-  <meta name="theme-color" content="#E3008C">
+  <meta name="theme-color" content="#0F6CBD">
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
   {% if typekit %}<link rel="stylesheet" href="https://use.typekit.net/{{ typekit }}.css">{% endif %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
@@ -35,7 +35,7 @@
     {% if request.script_root %}
     <a class="bar-btn" href="/" title="Back to Whitespace Hub" aria-label="Back to Whitespace Hub"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 2.6a2.2 2.2 0 0 1 3 0l5.3 4.6c.4.4.7.9.7 1.5v7.1c0 1-.8 1.7-1.7 1.7h-2.6c-1 0-1.7-.8-1.7-1.7v-3.3a.5.5 0 0 0-.5-.5H9a.5.5 0 0 0-.5.5v3.3c0 1-.8 1.7-1.7 1.7H4.2c-1 0-1.7-.8-1.7-1.7V8.7c0-.6.3-1.1.7-1.5l5.3-4.6Zm2.3.8a1.2 1.2 0 0 0-1.6 0L3.9 8a1 1 0 0 0-.4.7v7.1c0 .4.3.7.7.7h2.6c.4 0 .7-.3.7-.7v-3.3c0-.8.7-1.5 1.5-1.5h2c.8 0 1.5.7 1.5 1.5v3.3c0 .4.3.7.7.7h2.6c.4 0 .7-.3.7-.7V8.7a1 1 0 0 0-.4-.7l-5.3-4.6Z"/></svg></a>
     {% endif %}
-    <a class="avatar" href="{{ url_for('auth.account') }}" title="{{ user.name }} ({{ user.role }}) – account" aria-label="Your account">{{ (user.name or '?')[:1]|upper }}{{ ((user.name or '').split(' ')[-1][:1]|upper) if ' ' in (user.name or '') else '' }}</a>
+     <a class="avatar" href="{{ '/?account=1' if hub else url_for('auth.account') }}" title="{{ user.name }} ({{ user.role }}) – account" aria-label="Your account">{{ (user.name or '?')[:1]|upper }}{{ ((user.name or '').split(' ')[-1][:1]|upper) if ' ' in (user.name or '') else '' }}</a>
   </div>
 </header>
 <div class="layout">
@@ -54,7 +54,7 @@
     {{ nav('library.index', 'Emission factors', '<path d="M4 5h16v14H4zM4 10h16M10 10v9"/>', 'library.') }}
     {% if user and user.role == 'admin' %}
     <div class="nav-group">Admin</div>
-    {{ nav('admin.users', 'Users', '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 11a3 3 0 100-6M22 21c0-3-2-5-5-5"/>') }}
+    {% if not hub %}{{ nav('admin.users', 'Users', '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 11a3 3 0 100-6M22 21c0-3-2-5-5-5"/>') }}{% endif %}
     {{ nav('admin.settings', 'Settings', '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>') }}
     {% endif %}
     {% if request.script_root %}
@@ -63,8 +63,13 @@
     {% endif %}
     <div class="foot">
       <div class="who">{{ user.name }} <span>{{ user.role }}</span></div>
+      {% if hub %}
+      <a href="/?account=1">Account</a>
+      <a href="/logout">Sign out</a>
+      {% else %}
       <a href="{{ url_for('auth.account') }}">Account</a>
       <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button>Sign out</button></form>
+      {% endif %}
     </div>
   </aside>
   <div class="main">

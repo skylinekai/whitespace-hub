@@ -4,8 +4,10 @@ The staff hub for forms, policies and documents, with all 53 forms rebuilt so th
 
 - **Hub** (`/`): departments, search, favourites and every form, styled like Outlook on the web.
 - **Forms** (`/#form/<id>`): the same questions and show/hide rules as the Jotform versions, with file uploads, signatures, star ratings, product pickers and drafts that save on the device.
-- **Submissions** (`/admin`): an Outlook-style inbox. Forms are folders; open a submission to read it, see photos and signatures, mark it done, print it or download a CSV.
-- **Carbon platform** (`/carbon`): company Scope 1–3 footprint, stand footprints, targets, SECR and GHG reports. It has its own user accounts (admin / editor / viewer). See `carbon/README.md` for what it does and the note on emission factors.
+- **Sign-in** (`/login`): everything is behind a login. Two permissions: **Admin** (everything, including submissions, users and renaming folders) and **Viewer** (hub, forms and documents; carbon platform read-only).
+- **Submissions** (`/admin`, admins): an Outlook-style inbox. Forms are folders; open a submission to read it (including who sent it), see photos and signatures, mark it done, print it or download a CSV.
+- **Users** (`/admin#users`, admins): add people, switch them between Admin and Viewer, reset passwords, remove accounts.
+- **Carbon platform** (`/carbon`): company Scope 1–3 footprint, stand footprints, targets, SECR and GHG reports. It uses the hub sign-in, so nobody signs in twice. See `carbon/README.md` for what it does and the note on emission factors.
 
 ## How it fits together
 
@@ -26,13 +28,12 @@ The quickest way is the Blueprint, which creates the web service **and** its dat
 3. Render will ask for the values marked *sync: false*. Fill in at least:
    | Setting | What to put |
    |---|---|
-   | `ADMIN_PASSWORD` | The password for the Submissions dashboard. Share it only with people who should see submissions. |
    | `PUBLIC_URL` | The site address, e.g. `https://whitespace-hub.onrender.com` (used for links in emails). |
    | `NOTIFY_EMAILS` | Who gets emailed about new submissions, comma separated. |
    | `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | The mailbox that sends the emails (see below). |
    | `ANTHROPIC_API_KEY` | Optional. Turns on the carbon platform's AI import of bills and invoices. |
-4. Deploy. Visit `/admin`, sign in, and send a test form.
-5. Open **Carbon platform** from the hub. The first visit asks you to create the carbon admin account; add other people under Carbon → Users.
+4. Deploy, then sign in at `/login` with the first admin account (kai@skylinewhitespace.com). It is created automatically the first time the app starts. Change its password from the account menu (your initials, top right).
+5. Add everyone else under **Users**. Each person gets a temporary password to change after they sign in.
 
 
 > Without `DATABASE_URL` the app saves submissions to the server's own disk. That is fine for trying it out, but Render wipes that disk on every deploy, so always connect Postgres for real use. The dashboard shows a warning until you do.
@@ -59,7 +60,7 @@ Each email shows every answer and attaches the uploaded files and signature (whe
 
 ## Changing content
 
-- **Department folder names:** right-click a department in the hub's folder pane (or long-press on a phone) and choose **Rename**. You need to be signed in to Submissions, and the new name shows for everyone. **Reset name** puts the original back.
+- **Department folder names:** right-click a department in the hub's folder pane (or long-press on a phone) and choose **Rename**. Admins only; the new name shows for everyone. **Reset name** puts the original back.
 
 - **Hub sections, documents and links:** `public/hub-data.js`. Each item is one line:
   `['f', 'Title', '<form id>']` form · `['d', 'Title', '~File.pdf']` document · `['l', 'Title', 'https://…']` link · `['n', '<p>Text</p>']` note.
@@ -69,11 +70,13 @@ Commit and push; Render redeploys automatically.
 
 ## Good to know
 
-- Forms are public so clients and suppliers can fill in the supplier, customer and handover forms. The dashboard needs the password.
-- Some forms collect bank details, National Insurance numbers and health information. Keep the dashboard password private, and delete submissions you no longer need.
+- Every form now needs a sign-in, so clients and suppliers can't fill in the supplier, customer or handover forms unless you give them an account. Ask Claude to make chosen forms public if you need that.
+- Forgotten passwords: an admin resets them under **Users**. That signs the person out everywhere.
+- Some forms collect bank details, National Insurance numbers and health information. Give Admin only to people who need to see submissions, and delete submissions you no longer need.
+- Keep the GitHub repo private.
 - Documents (policies, certificates, logos) still link to files hosted on Jotform. Move them before you close the Jotform account; ask Claude to bring them into the app.
 - Old Jotform submissions stay in Jotform. Export them there if you want a record.
-- The carbon platform keeps its own sign-in, separate from the Submissions password, because it has roles (admin, editor, viewer).
+- The carbon platform trusts the hub's sign-in: hub Admins are carbon admins, hub Viewers are carbon viewers (read-only).
 - Carbon's client stand reports stay in Skyline Whitespace navy with your logo, since they go to clients. Replace `carbon/static/img/logo.svg` with the official artwork.
 - Run it locally: `npm install`, `pip install -r carbon/requirements.txt`, then in two terminals
-  `cd carbon && CARBON_PREFIX=/carbon python app.py` (port 5000; set `PORT=5001`) and `ADMIN_PASSWORD=test npm start`. Open http://localhost:3000.
+  or simply `npm start` (it starts the carbon platform for you). Open http://localhost:3000.

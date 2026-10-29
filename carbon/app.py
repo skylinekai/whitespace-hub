@@ -1,5 +1,8 @@
 import os
 import secrets
+from urllib.parse import unquote
+
+from werkzeug.security import generate_password_hash
 
 from flask import Flask, session, request, redirect, url_for, g, abort, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -7,6 +10,9 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import db as dbm
 from helpers import login_required, can_edit, current_period
 from constants import CATEGORIES, SCOPE_LABELS, SCOPE_COLOURS, KIND_LABELS, STAND_SECTIONS
+
+
+HUB_SIGN_IN = os.environ.get("CARBON_TRUST_HUB") == "1"
 
 
 def create_app():
@@ -29,6 +35,8 @@ def create_app():
     @app.before_request
     def load_user_and_csrf():
         g.user = None
+        if HUB_SIGN_IN:
+            return hub_user()
         uid = session.get("uid")
         if uid:
             g.user = dbm.q("SELECT * FROM users WHERE id=? AND active=1", (uid,), one=True)
@@ -44,6 +52,39 @@ def create_app():
         if request.endpoint not in ("auth.setup", "static") and not dbm.q("SELECT 1 FROM users LIMIT 1"):
             return redirect(url_for("auth.setup"))
 
+    def hub_user():
+        """Inside Whitespace Hub: the hub has already signed the person in and tells us who they are.
+        Only the hub can reach this app (it listens on 127.0.0.1), and the hub strips these
+        headers from browser requests before setting them."""
+        if request.endpoint == "static":
+            return None
+        email = (request.headers.get("X-Hub-User-Email") or "").strip().lower()
+        if not email:
+            return redirect("/login")
+        name = unquote(request.headers.get("X-Hub-User-Name") or "").strip() or email
+        role = "admin" if request.headers.get("X-Hub-User-Role") == "admin" else "viewer"
+        user = dbm.q("SELECT * FROM users WHERE email=?", (email,), one=True)
+        if not user:
+            dbm.ex("INSERT INTO users(email,name,password_hash,role) VALUES(?,?,?,?)",
+                   (email, name, generate_password_hash(secrets.token_hex(24)), role))
+        elif user["role"] != role or user["name"] != name or not user["active"]:
+            dbm.ex("UPDATE users SET role=?, name=?, active=1 WHERE id=?", (role, name, user["id"]))
+        g.user = dbm.q("SELECT * FROM users WHERE email=?", (email,), one=True)
+        session["uid"] = g.user["id"]
+        session.permanent = True
+        if "csrf" not in session:
+            session["csrf"] = secrets.token_hex(16)
+        # sign-in, sign-out, accounts and users are handled by the hub
+        if request.endpoint in ("auth.login", "auth.setup", "auth.account", "admin.users"):
+            return redirect("/admin#users" if request.endpoint == "admin.users" else "/")
+        if request.endpoint == "auth.logout":
+            return redirect("/logout")
+        if request.method == "POST":
+            token = request.form.get("_csrf") or request.headers.get("X-CSRF")
+            if token != session.get("csrf"):
+                abort(400, "Your session expired. Go back, refresh the page and try again.")
+        return None
+
     @app.context_processor
     def inject():
         periods = dbm.q("SELECT * FROM periods ORDER BY start_date DESC") if g.get("user") else []
@@ -53,7 +94,7 @@ def create_app():
             periods_nav=periods, current_period=current, org_name=dbm.setting("org_name", "Skyline Whitespace"),
             CATEGORIES=CATEGORIES, SCOPE_LABELS=SCOPE_LABELS, SCOPE_COLOURS=SCOPE_COLOURS,
             KIND_LABELS=KIND_LABELS, STAND_SECTIONS=STAND_SECTIONS,
-            typekit=os.environ.get("TYPEKIT_KIT_ID"), ai_enabled=bool(os.environ.get("ANTHROPIC_API_KEY")),
+            typekit=os.environ.get("TYPEKIT_KIT_ID"), hub=HUB_SIGN_IN, ai_enabled=bool(os.environ.get("ANTHROPIC_API_KEY")),
         )
 
     @app.template_filter("t")
