@@ -2,12 +2,15 @@
 
 Skyline Whitespace's internal hub of forms, policies and documents. Replaces the Jotform app at eu.jotform.com/app/240183316304345.
 
-It's a single static page (`index.html`) with no build step. Forms still submit to Jotform; documents are still hosted on Jotform.
+A Node web app: `server.js` serves the hub (index.html) (no dependencies). Forms still submit to Jotform; documents are still hosted on Jotform.
+
+Run locally: `npm start`, then open http://localhost:3000
 
 ## Deploy on Render
 1. Push this folder to a GitHub repo.
-2. In Render: **New → Blueprint**, pick the repo. `render.yaml` sets it up as a free static site.
-   (Or **New → Static Site**, publish directory `.`, no build command.)
+2. In Render: **New → Web Service**, pick the repo, then set
+   Language **Node**, Build command `npm install`, Start command `npm start`.
+   (Or **New → Blueprint** and `render.yaml` fills these in.)
 3. Optional: add a custom domain such as `hub.skylinewhitespace.com` under Settings → Custom Domains.
 
 ## Editing content
