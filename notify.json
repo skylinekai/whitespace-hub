@@ -1,0 +1,215 @@
+{
+  "_help": "Who gets an email for each form. Put email addresses in the list. Forms left empty use NOTIFY_EMAILS from Render.",
+  "223033715588054": {
+    "form": "Travel Booking Form",
+    "emails": []
+  },
+  "240213709659358": {
+    "form": "Suggestion Box",
+    "emails": []
+  },
+  "240183111263342": {
+    "form": "Sponsorship Application Form",
+    "emails": []
+  },
+  "240993739104058": {
+    "form": "Parking Request Form",
+    "emails": []
+  },
+  "241023775394054": {
+    "form": "Purchase Request Form",
+    "emails": []
+  },
+  "240352159703048": {
+    "form": "Sales Lead Telephone",
+    "emails": []
+  },
+  "240213000519034": {
+    "form": "HR Connect",
+    "emails": []
+  },
+  "253292679303361": {
+    "form": "Management TOIL Request",
+    "emails": []
+  },
+  "240183470180045": {
+    "form": "Self-Certification of Absence",
+    "emails": []
+  },
+  "240181811919052": {
+    "form": "Missing Receipt Affidavit",
+    "emails": []
+  },
+  "240301665174046": {
+    "form": "Certification of Self Employment Status",
+    "emails": []
+  },
+  "223036208177048": {
+    "form": "SLWS New Supplier Form",
+    "emails": []
+  },
+  "223075347405352": {
+    "form": "XPO New Supplier Form",
+    "emails": []
+  },
+  "223062438555052": {
+    "form": "SLWS New Customer Form",
+    "emails": []
+  },
+  "223063587889371": {
+    "form": "XPO New Customer Form",
+    "emails": []
+  },
+  "240213525602039": {
+    "form": "Project Management TOIL Request",
+    "emails": []
+  },
+  "230114438688055": {
+    "form": "Client Handover",
+    "emails": []
+  },
+  "250193982172359": {
+    "form": "Virtual Client Handover",
+    "emails": []
+  },
+  "230294337603049": {
+    "form": "Supplier Evaluation Form",
+    "emails": []
+  },
+  "242114158202039": {
+    "form": "Dismantle Check Reporting Form",
+    "emails": []
+  },
+  "252681770711357": {
+    "form": "Onsite Damage/Loss Report Form",
+    "emails": []
+  },
+  "240372600726046": {
+    "form": "Onsite Feedback Form",
+    "emails": []
+  },
+  "252783037988372": {
+    "form": "Consumables Order Form",
+    "emails": []
+  },
+  "243381522596360": {
+    "form": "Uniform Order Form",
+    "emails": []
+  },
+  "252722226313347": {
+    "form": "Furniture QC Check Out",
+    "emails": []
+  },
+  "252722904774361": {
+    "form": "Furniture QC Check In",
+    "emails": []
+  },
+  "252795056951366": {
+    "form": "TV / AV Quality Control",
+    "emails": []
+  },
+  "233303977790060": {
+    "form": "Vehicle Incident Form",
+    "emails": []
+  },
+  "240182321823043": {
+    "form": "PCN Reporting Form",
+    "emails": []
+  },
+  "262014226297050": {
+    "form": "Operations Manager Request Form",
+    "emails": []
+  },
+  "262014445775054": {
+    "form": "Project Management Request Form",
+    "emails": []
+  },
+  "260602716254048": {
+    "form": "XPO Client Handover Form",
+    "emails": []
+  },
+  "260622107215344": {
+    "form": "XPO Virtual Client Handover Form",
+    "emails": []
+  },
+  "241284893227362": {
+    "form": "XPO TOIL Request",
+    "emails": []
+  },
+  "242692379898076": {
+    "form": "Photography / Videography Request Form",
+    "emails": []
+  },
+  "242604475360353": {
+    "form": "Photo Upload",
+    "emails": []
+  },
+  "262083419670055": {
+    "form": "Forklift Truck Pre-Use Checklist",
+    "emails": []
+  },
+  "263002425224039": {
+    "form": "Vehicle Defect Report",
+    "emails": []
+  },
+  "241363892268061": {
+    "form": "Health and Safety Report Form",
+    "emails": []
+  },
+  "233304819981058": {
+    "form": "Incident Report",
+    "emails": []
+  },
+  "223052901261343": {
+    "form": "Office Safety Checklist",
+    "emails": []
+  },
+  "250782909945370": {
+    "form": "Pick and Pack Safety Checklist",
+    "emails": []
+  },
+  "240392238375358": {
+    "form": "Production Safety Checklist",
+    "emails": []
+  },
+  "233302667356053": {
+    "form": "Warehouse Safety Checklist",
+    "emails": []
+  },
+  "223055397644360": {
+    "form": "Workshop Safety Checklist",
+    "emails": []
+  },
+  "262851979379075": {
+    "form": "Morning Checklist",
+    "emails": []
+  },
+  "262852437138058": {
+    "form": "End of Day Checklist",
+    "emails": []
+  },
+  "262952510143047": {
+    "form": "Production Daily Maintenance Checklist",
+    "emails": []
+  },
+  "262953088461061": {
+    "form": "Production Weekly Maintenance List",
+    "emails": []
+  },
+  "262952757179372": {
+    "form": "Production Monthly Maintenance List",
+    "emails": []
+  },
+  "242674460747060": {
+    "form": "Whitebox Go Graphic QC",
+    "emails": []
+  },
+  "253434757674064": {
+    "form": "LED Sign Quality Check",
+    "emails": []
+  },
+  "251204421184344": {
+    "form": "Custom QC",
+    "emails": []
+  }
+}

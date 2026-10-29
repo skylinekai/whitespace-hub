@@ -1,34 +1,56 @@
 # Whitespace Hub
 
-Skyline Whitespace's internal hub of forms, policies and documents. Replaces the Jotform app at eu.jotform.com/app/240183316304345.
+The staff hub for forms, policies and documents, with all 53 forms rebuilt so they no longer need Jotform.
 
-A Node web app: `server.js` serves the hub (index.html) (no dependencies). Forms still submit to Jotform; documents are still hosted on Jotform.
+- **Hub** (`/`): departments, search, favourites and every form, styled like Outlook on the web.
+- **Forms** (`/#form/<id>`): the same questions and show/hide rules as the Jotform versions, with file uploads, signatures, star ratings, product pickers and drafts that save on the device.
+- **Submissions** (`/admin`): an Outlook-style inbox. Forms are folders; open a submission to read it, see photos and signatures, mark it done, print it or download a CSV.
 
-Run locally: `npm start`, then open http://localhost:3000
+## Put it live on Render
 
-## Deploy on Render
-1. Push this folder to a GitHub repo.
-2. In Render: **New → Web Service**, pick the repo, then set
-   Language **Node**, Build command `npm install`, Start command `npm start`.
-   (Or **New → Blueprint** and `render.yaml` fills these in.)
-3. Optional: add a custom domain such as `hub.skylinewhitespace.com` under Settings → Custom Domains.
+The quickest way is the Blueprint, which creates the web service **and** its database together.
 
-## Editing content
-All content lives in the `D` array near the top of the `<script>` in `index.html`.
-Each department has groups: `['Heading', [items]]`. Each item is one of:
+1. Push this folder to your GitHub repo (replace the old files).
+2. In Render choose **New → Blueprint**, pick the repo and confirm. It creates:
+   - `whitespace-hub` (web service, Starter plan)
+   - `whitespace-hub-db` (Postgres, Basic plan) — this is where submissions and uploads are kept.
+3. Render will ask for the values marked *sync: false*. Fill in at least:
+   | Setting | What to put |
+   |---|---|
+   | `ADMIN_PASSWORD` | The password for the Submissions dashboard. Share it only with people who should see submissions. |
+   | `PUBLIC_URL` | The site address, e.g. `https://whitespace-hub.onrender.com` (used for links in emails). |
+   | `NOTIFY_EMAILS` | Who gets emailed about new submissions, comma separated. |
+   | `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | The mailbox that sends the emails (see below). |
+4. Deploy. Visit `/admin`, sign in, and send a test form.
 
-| Item | Meaning |
-|---|---|
-| `['f', 'Title', '240181811919052', 'optional subtitle']` | Jotform form (the form ID) |
-| `['d', 'Title', '~File%20Name.pdf', 'optional subtitle']` | Document; `~` = Jotform uploads folder, or a full URL |
-| `['l', 'Title', 'https://…', 'optional subtitle']` | External link |
-| `['p', 'Title', 'department-id']` | Link to another page in the hub |
-| `['n', '<p>HTML text</p>']` | A note / paragraph |
+Already have a web service? In its **Environment** tab add the same settings, create a Postgres database in Render (**New → Postgres**) and paste its *Internal Database URL* into `DATABASE_URL`.
 
-Home-page tiles are listed in `HOME`, quick-action buttons in `QUICK`.
+> Without `DATABASE_URL` the app saves submissions to the server's own disk. That is fine for trying it out, but Render wipes that disk on every deploy, so always connect Postgres for real use. The dashboard shows a warning until you do.
+
+## Email alerts (Microsoft 365)
+
+The defaults in `render.yaml` point at Microsoft 365 (`smtp.office365.com`, port 587).
+
+1. Use a mailbox such as `forms@skylinewhitespace.com` and put it in `SMTP_USER` and `MAIL_FROM`.
+2. Ask your Microsoft 365 admin to turn on **Authenticated SMTP** for that mailbox (Microsoft 365 admin centre → Users → the mailbox → Mail → Manage email apps).
+3. Put its password (or an app password if it uses multi-factor sign-in) in `SMTP_PASS`.
+
+Each email shows every answer and attaches the uploaded files and signature (when they total under 15 MB), with a link straight to the submission.
+
+**Different recipients per form:** edit `notify.json`. Every form is listed by name; add addresses to its `emails` list. Forms left empty go to `NOTIFY_EMAILS`.
+
+## Changing content
+
+- **Hub sections, documents and links:** `public/hub-data.js`. Each item is one line:
+  `['f', 'Title', '<form id>']` form · `['d', 'Title', '~File.pdf']` document · `['l', 'Title', 'https://…']` link · `['n', '<p>Text</p>']` note.
+- **Form questions:** `public/forms.json`. Each form has `fields` (id, type, label, required, options) and `rules` (show or hide fields based on answers). Changing a label or adding an option is a one-line edit. Old submissions keep the questions they were sent with.
+
 Commit and push; Render redeploys automatically.
 
-## Notes
-- The site is public to anyone with the URL (like the Jotform app). It's set to `noindex` so search engines skip it.
-- Favourites are stored in each person's browser.
-- Staff can add it to their phone home screen ("Add to Home Screen") and it opens like an app.
+## Good to know
+
+- Forms are public so clients and suppliers can fill in the supplier, customer and handover forms. The dashboard needs the password.
+- Some forms collect bank details, National Insurance numbers and health information. Keep the dashboard password private, and delete submissions you no longer need.
+- Documents (policies, certificates, logos) still link to files hosted on Jotform. Move them before you close the Jotform account; ask Claude to bring them into the app.
+- Old Jotform submissions stay in Jotform. Export them there if you want a record.
+- Run it locally with `npm install` then `ADMIN_PASSWORD=test npm start`, and open http://localhost:3000.
