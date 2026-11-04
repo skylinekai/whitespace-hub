@@ -6,11 +6,12 @@ const path = require('path');
 const fs = require('fs');
 const Engine = require('./public/engine.js');
 const makeStore = require('./lib/store');
-const { notify, taskAssigned } = require('./lib/mail');
+const { notify, taskAssigned, questionAnswered } = require('./lib/mail');
 const { makeBoard, EMOJIS } = require('./lib/board');
 const { makeTodo } = require('./lib/mstodo');
 const { makeKnowledge } = require('./lib/knowledge');
 const { makeAssistant } = require('./lib/assistant');
+const { makeHelpdesk } = require('./lib/helpdesk');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -36,6 +37,7 @@ const board = makeBoard(store);
 let todo = null;   // set up once the session secret is known
 const knowledge = makeKnowledge({ store, getHub: () => HUB, getForms: () => byId, board, allowHosts: (process.env.IMPORT_DOC_HOSTS || '').split(',').map(s => s.trim()).filter(h => h === 'localhost') });
 const assistant = makeAssistant(knowledge);
+const helpdesk = makeHelpdesk(store, board, { defaultStaffEmails: (process.env.HR_CONTACT_EMAILS || 'jack@skylinewhitespace.com').split(',').map(s => s.trim().toLowerCase()).filter(Boolean) });
 let kbTimer = null;
 const kbSoon = (ms = 15e3) => { knowledge.markDirty(); clearTimeout(kbTimer); kbTimer = setTimeout(() => knowledge.refresh().catch(() => {}), ms); kbTimer.unref && kbTimer.unref(); };
 const MAX_FILE = 25 * 1024 * 1024, MAX_BODY = 200 * 1024 * 1024;
@@ -613,9 +615,55 @@ async function route(req, res) {
       return json(res, 502, { error: why });
     }
   }
+  // ----- asking a person (Jack) when Helpful HR can't help -----
+  if (p === '/api/hhr/presence' && m === 'POST') {
+    const b = await readJson(req);
+    helpdesk.ping(user.id, b.visible !== false);
+    const [staff, ids] = await Promise.all([helpdesk.staff(), helpdesk.staffIds()]);
+    const isStaff = ids.includes(user.id);
+    const mine = await helpdesk.mine(user);
+    const out = { staff, isStaff, myUnread: mine.filter(t => t.unreadUser).length };
+    if (isStaff) { const inbox = (await helpdesk.inbox()).filter(t => t.fromId !== user.id); out.inbox = { open: inbox.filter(t => t.status === 'open').length, unread: inbox.filter(t => t.unreadStaff).length, latest: inbox.filter(t => t.unreadStaff).slice(0, 1).map(t => ({ id: t.id, from: t.fromName, question: t.question.slice(0, 120) }))[0] || null }; }
+    return json(res, 200, out, { 'Cache-Control': 'no-cache' });
+  }
+  if (p === '/api/hhr/tickets' && m === 'GET') {
+    const isStaff = (await helpdesk.staffIds()).includes(user.id);
+    const mine = (await helpdesk.mine(user)).map(t => helpdesk.forUser(t, user, false));
+    const inbox = isStaff ? (await helpdesk.inbox()).filter(t => t.fromId !== user.id).map(t => helpdesk.forUser(t, user, true)) : [];
+    return json(res, 200, { mine, inbox, isStaff, staff: await helpdesk.staff() }, { 'Cache-Control': 'no-cache' });
+  }
+  if (p === '/api/hhr/tickets' && m === 'POST') {
+    if (limited(req, 'hhrq:' + user.id, 10, 60 * 60e3)) return json(res, 429, { error: 'You’ve sent a lot of questions. Wait a while and try again.' });
+    try {
+      const { ticket, task, assignee } = await helpdesk.create(user, await readJson(req));
+      if (assignee.id !== user.id) taskAssigned(task, assignee, user.name).catch(e => console.error('[mail] question email failed:', e.message));
+      return json(res, 201, helpdesk.forUser(ticket, user, false));
+    } catch (e) { if (e instanceof helpdesk.Invalid || e instanceof board.Invalid) return json(res, 400, { error: e.message }); throw e; }
+  }
+  if ((mt = p.match(/^\/api\/hhr\/tickets\/(q[0-9a-f]{12})(\/(messages|close))?$/))) {
+    const t = await helpdesk.get(mt[1]);
+    if (!(await helpdesk.canSee(t, user))) return json(res, 404, { error: 'That question isn’t available.' });
+    const isStaff = t.fromId !== user.id;
+    if (!mt[2] && m === 'GET') { await helpdesk.markRead(t.id, user); return json(res, 200, Object.assign(helpdesk.forUser(await helpdesk.get(t.id), user, isStaff), { staff: await helpdesk.staff() }), { 'Cache-Control': 'no-cache' }); }
+    if (mt[3] === 'messages' && m === 'POST') {
+      try {
+        const b = await readJson(req), r = await helpdesk.reply(t.id, user, b.text);
+        if (!r) return json(res, 404, { error: 'That question isn’t available.' });
+        if (r.fromStaff && !helpdesk.isOnline(r.t.fromId)) store.getUser(r.t.fromId).then(u => questionAnswered(u, user.name, r.t.question, String(b.text), r.t.id)).catch(e => console.error('[mail] reply email failed:', e.message));
+        return json(res, 200, helpdesk.forUser(r.t, user, isStaff));
+      } catch (e) { if (e instanceof helpdesk.Invalid) return json(res, 400, { error: e.message }); throw e; }
+    }
+    if (mt[3] === 'close' && m === 'POST') return json(res, 200, helpdesk.forUser(await helpdesk.close(t.id, user), user, isStaff));
+  }
+  if (p === '/api/admin/hhr-staff' && m === 'PUT') {
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });
+    const ids = ((await readJson(req)).ids || []).map(Number).filter(Boolean).slice(0, 10);
+    if (!ids.length) return json(res, 400, { error: 'Choose at least one person.' });
+    await helpdesk.setStaff(ids); return json(res, 200, { staff: await helpdesk.staff() });
+  }
   if (p === '/api/assistant/status' && m === 'GET') {
     if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can see this.' });
-    return json(res, 200, Object.assign({ ai: assistant.aiOn, model: assistant.model }, await knowledge.status()));
+    return json(res, 200, Object.assign({ ai: assistant.aiOn, model: assistant.model, staff: await helpdesk.staff(), people: (await store.listUsers()).map(u => ({ id: u.id, name: u.name })) }, await knowledge.status()));
   }
   if (p === '/api/admin/assistant/refresh' && m === 'POST') {
     if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });

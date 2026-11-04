@@ -103,6 +103,14 @@ Each answer shows numbered sources that open the document at the right page. If 
 
 Without a key, Helpful HR still works but shows the most relevant passages instead of a written answer. `HELPFUL_HR_MODEL` changes the model (default `claude-haiku-5-5`).
 
+**Asking a person:** when Helpful HR can't find the answer, it offers to pass the question to **Jack Stevens**, showing whether he's **online now** or **away**. Every answer also has a "Still need help? Ask Jack" link.
+- Each question becomes a task on Jack's dashboard, linked to the conversation, so nothing is missed. He also gets an email if email is set up.
+- If Jack is online he gets a pop-up and can reply straight away in the Helpful HR window, like a live chat.
+- If Jack is away, he replies from the task when he's back. The person sees the answer under **Questions** in Helpful HR, gets an email if they're not online, and the red badge on the button shows there's a reply.
+- Jack's task is ticked off when he replies. It comes back if the person writes again, and either side can **Mark as resolved**.
+- Only the person who asked and the people who answer can see a question. Not even other admins can.
+- **Who answers:** Jack by default. Admins can change this in Helpful HR's **⋯** menu → **What Helpful HR has read** → **Who answers questions Helpful HR can't**; the first person ticked gets the tasks. `HR_CONTACT_EMAILS` sets the default.
+
 **What's sent to the AI:** only the question, the last few messages of that chat, and the hub passages that matched. Submissions, users and other personal data are never sent. Each person is limited to 30 questions per 10 minutes.
 
 **Keeping it up to date:** Helpful HR reads each document once, a few seconds after start-up and whenever the hub changes. Admins can open the chat's **⋯** menu → **What Helpful HR has read** to see how many documents it has read and which it couldn't (for example scanned images with no text, or links that need a sign-in), and to read everything again.
