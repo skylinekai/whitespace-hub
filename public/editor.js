@@ -321,18 +321,67 @@ window.initHubEditor = function (ctx) {
     try { await api('/api/admin/tasks/' + id, { method: 'DELETE' }); ok('Task deleted.'); } catch (e) { bad(e.message); }
     ctx.loadDash();
   }
+  // Shrink big photos before upload so the dashboard stays quick (longest side 1600px).
+  async function shrinkImage(file) {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 400 * 1024) return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      if (k === 1 && file.size < 2 * 1048576) return file;
+      const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      const blob = await new Promise(r => c.toBlob(r, file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.85));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], file.name.replace(/\.(png|webp|jpe?g)$/i, '') + (blob.type === 'image/png' ? '.png' : '.jpg'), { type: blob.type });
+    } catch { return file; }
+  }
   async function newsDialog(id) {
     const n = id ? ctx.dash.news.find(x => x.id === id) : null;
     const title = input('nwTitle', n ? n.title : '', { maxlength: '200', placeholder: 'e.g. Office closed on Friday' });
     const msg = h('textarea', { id: 'nwBody', class: 'ctl', rows: 6, maxlength: '5000' }); msg.value = n ? n.body || '' : '';
     const link = input('nwLink', n ? n.link : '', { placeholder: 'Optional, https://…', inputmode: 'url' });
     const pin = h('input', { type: 'checkbox', id: 'nwPin', checked: !!(n && n.pinned) });
-    const body = h('div', {}, field('Headline', title), field('Message', msg), field('Link', link),
-      h('label', { class: 'opt', for: 'nwPin', style: 'margin-top:10px' }, pin, h('span', {}, 'Pin to the top')));
+    // picture
+    let image = n && n.image ? n.image : '';
+    const fileIn = h('input', { type: 'file', id: 'nwImg', accept: 'image/jpeg,image/png,image/gif,image/webp' });
+    const preview = h('div', { class: 'imgprev' });
+    const pick = h('span', { class: 'btn' });
+    const removeBtn = h('button', { class: 'btn subtle dangertext', type: 'button', onclick: () => { image = ''; paint(); } }, 'Remove picture');
+    const drop = h('label', { class: 'filebox', for: 'nwImg' }, pick, h('span', { class: 'hint2' }, 'JPG, PNG, GIF or WebP. Or drag a picture here.'), fileIn);
+    function paint(busy) {
+      pick.innerHTML = icon('upload') + (image ? 'Change picture' : 'Add a picture');
+      preview.innerHTML = busy ? `<span class="spinner"></span><span>Uploading…</span>` : image ? `<img src="${esc(image)}" alt="">` : '';
+      preview.hidden = !busy && !image; removeBtn.hidden = !image || busy;
+    }
+    async function upload(f) {
+      if (!f) return;
+      if (!/^image\/(jpeg|png|gif|webp)$/.test(f.type)) return body._box.showError('Choose a JPG, PNG, GIF or WebP picture.');
+      paint(true);
+      try {
+        const small = await shrinkImage(f);
+        if (small.size > 20 * 1048576) throw new Error('That picture is over 20 MB. Choose a smaller one.');
+        const fd = new FormData(); fd.append('file', small, small.name);
+        image = (await api('/api/admin/files', { method: 'POST', form: fd })).url;
+      } catch (e) { body._box.showError(e.message); }
+      paint();
+    }
+    fileIn.addEventListener('change', () => upload(fileIn.files[0]));
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); upload(e.dataTransfer.files[0]); });
+    // paste a screenshot straight in
+    const onPaste = e => { const f = [...(e.clipboardData || {}).files || []].find(x => x.type.startsWith('image/')); if (f) { e.preventDefault(); upload(f); } };
+    const body = h('div', {}, field('Headline', title), field('Message', msg),
+      h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Picture'), drop, preview, removeBtn),
+      field('Link', link), h('label', { class: 'opt', for: 'nwPin', style: 'margin-top:10px' }, pin, h('span', {}, 'Pin to the top')));
+    paint();
+    document.addEventListener('paste', onPaste);
     const p = dialog(n ? 'Edit announcement' : 'New announcement', body, { submit: n ? 'Save' : 'Post', wide: true });
+    p.then(() => document.removeEventListener('paste', onPaste));
     body._box.onsave = async () => {
       if (!title.value.trim()) throw new Error('Write a headline.');
-      await api(n ? '/api/admin/news/' + n.id : '/api/admin/news', { method: n ? 'PUT' : 'POST', json: { title: title.value, body: msg.value, link: link.value.trim(), pinned: pin.checked } });
+      if (preview.querySelector('.spinner')) throw new Error('Wait for the picture to finish uploading.');
+      await api(n ? '/api/admin/news/' + n.id : '/api/admin/news', { method: n ? 'PUT' : 'POST', json: { title: title.value, body: msg.value, link: link.value.trim(), pinned: pin.checked, image } });
       ok(n ? 'Announcement saved.' : 'Posted. Everyone sees it on their dashboard.'); ctx.loadDash(); return true;
     };
     return p;

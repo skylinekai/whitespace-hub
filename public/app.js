@@ -204,6 +204,7 @@
     if (!DASH.news.length) return `<div class="dempty">${icon('megaphone', 'i big')}<b>No announcements</b><span>${isAdminMe() ? 'Post one to share news with everyone.' : 'Company news will show here.'}</span></div>`;
     return `<ul class="news">${DASH.news.map(n => `<li class="ann${n.pinned ? ' pinned' : ''}">
       <div class="ahead"><b>${esc(n.title)}</b>${isAdminMe() ? `<span class="etools"><button class="eb icon" type="button" data-act="news-edit" data-news="${n.id}" title="Edit" aria-label="Edit announcement">${icon('rename')}</button><button class="eb icon danger" type="button" data-act="news-del" data-news="${n.id}" title="Delete" aria-label="Delete announcement">${icon('del')}</button></span>` : ''}</div>
+      ${n.image ? `<a class="aimg" href="${esc(n.image)}" target="_blank" rel="noopener" aria-label="Open picture full size"><img src="${esc(n.image)}" alt="" loading="lazy"></a>` : ''}
       ${n.body ? `<p>${esc(n.body)}</p>` : ''}
       <div class="tmeta">${n.pinned ? `<span class="pin">${icon('pin', 'i16')}Pinned</span>` : ''}<span>${esc(n.by)} · ${ago(n.at)}</span>${n.link ? `<a class="tlink"${linkAttrs(n.link)}>${icon('open', 'i16')}Read more</a>` : ''}</div>
     </li>`).join('')}</ul>`;

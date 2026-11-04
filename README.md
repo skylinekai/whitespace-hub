@@ -101,7 +101,7 @@ Each email shows every answer and attaches the uploaded files and signature (whe
 The first page everyone sees. It welcomes them by their full name over the showroom photo (`public/dashboard-bg.jpg`; replace that file to change it), with **My tasks** on the left and **Announcements** on the right.
 
 - **Tasks:** admins select **Assign a task**, choose a person, and add an optional due date, notes and a link (a web address or one of the hub's forms). If email is set up, the person gets an email. Everyone ticks off their own tasks. Admins can switch to **Everyone's** to see all tasks, and edit or delete any of them.
-- **Announcements:** admins select **Post**. Pinned announcements stay at the top. Everyone sees them.
+- **Announcements:** admins select **Post**. Each one can have a picture: choose a file, drag it in, or paste a screenshot. Large photos are shrunk automatically so the dashboard stays quick. Pinned announcements stay at the top. Everyone sees them.
 - **Full names:** set them in **Users → Rename**. People who sign in with Microsoft get their full name from Microsoft 365 automatically if only a first name is stored. `INITIAL_ADMIN_NAME` sets the first admin's name.
 
 ## Admins

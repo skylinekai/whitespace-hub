@@ -312,6 +312,7 @@ async function saveHub(doc, by) {
 // Delete uploaded files nothing links to any more (after an hour, so a fresh upload isn't removed before it's used)
 async function tidyDocs() {
   const used = Content.referencedDocIds(HUB), cutoff = Date.now() - 3600e3;
+  for (const n of await board.news()) { const m = n.image && n.image.match(/^\/files\/([0-9a-f-]{36})\//); if (m) used.add(m[1]); }   // announcement pictures
   for (const d of await store.listDocs()) if (!used.has(d.id) && new Date(d.createdAt).getTime() < cutoff) await store.deleteDoc(d.id);
 }
 async function contentRoute(req, res, p, m, url) {
@@ -546,7 +547,7 @@ async function route(req, res) {
       }
       if (p === '/api/admin/news' && m === 'POST') return json(res, 201, await board.createNews(await readJson(req), user));
       if ((mt = p.match(/^\/api\/admin\/news\/([a-z0-9]{1,40})$/))) {
-        if (m === 'DELETE') return (await board.deleteNews(mt[1])) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'That announcement has already been removed.' });
+        if (m === 'DELETE') { const gone = await board.deleteNews(mt[1]); tidyDocs().catch(() => {}); return gone ? json(res, 200, { ok: true }) : json(res, 404, { error: 'That announcement has already been removed.' }); }
         if (m === 'PUT') { const n = await board.updateNews(mt[1], await readJson(req)); return n ? json(res, 200, n) : json(res, 404, { error: 'That announcement has been removed.' }); }
       }
       return json(res, 404, { error: 'Not found' });
