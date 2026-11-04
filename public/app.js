@@ -50,6 +50,9 @@
     person: 'M10 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 9h10a2 2 0 0 1 2 2c0 1.7-.8 2.9-2.1 3.7-1.2.8-2.9 1.3-4.9 1.3s-3.7-.5-4.9-1.3A4.2 4.2 0 0 1 3 14c0-1.1.9-2 2-2Zm0 1a1 1 0 0 0-1 1c0 1.3.6 2.2 1.6 2.9 1 .7 2.6 1.1 4.4 1.1s3.4-.4 4.4-1.1c1-.7 1.6-1.6 1.6-2.9a1 1 0 0 0-1-1H5Z',
     megaphone: 'M15.5 3.1c.3.1.5.4.5.7v12.4a.8.8 0 0 1-1.1.7L10.7 15H9.5l.8 2.4a.5.5 0 0 1-.5.6H7.6a.5.5 0 0 1-.5-.3L6 15H5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5.7l4.2-1.9a.8.8 0 0 1 .6 0ZM15 4.2 11 6v8l4 1.8V4.2ZM10 6H5a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h5V6Zm-1.6 9H7.1l.9 2h1.1l-.7-2Zm9.1-7.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V8c0-.3.2-.5.5-.5Z',
     pin: 'M12.8 2.4a1.5 1.5 0 0 0-2.4.4L8.6 6.5 5 7.6a1 1 0 0 0-.4 1.7l2.5 2.5-3.9 3.9a.5.5 0 0 0 .7.7l3.9-3.9 2.5 2.5a1 1 0 0 0 1.7-.4l1.1-3.6 3.7-1.8a1.5 1.5 0 0 0 .4-2.4l-4.4-4.4Zm-1.5.9a.5.5 0 0 1 .8-.2l4.4 4.4c.3.3.2.7-.2.8l-3.9 2c-.1 0-.2.2-.3.3l-1.2 3.8L5.5 9l3.8-1.2.3-.3 2-3.9Z',
+    smile: 'M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm-3.2 8.6a.5.5 0 0 1 .7.1 3 3 0 0 0 5 0 .5.5 0 0 1 .8.6 4 4 0 0 1-6.6 0 .5.5 0 0 1 .1-.7ZM7.5 7.3a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z',
+    eye: 'M10 6c3.2 0 6 2 7.4 4-1.4 2-4.2 4-7.4 4s-6-2-7.4-4C4 8 6.8 6 10 6Zm0-1C6.3 5 3.1 7.4 1.6 9.8a.5.5 0 0 0 0 .4C3.1 12.6 6.3 15 10 15s6.9-2.4 8.4-4.8a.5.5 0 0 0 0-.4C16.9 7.4 13.7 5 10 5Zm0 2.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z',
+    eyeoff: 'M2.9 2.1a.5.5 0 0 0-.8.8l3 3C3.6 7 2.4 8.4 1.6 9.8a.5.5 0 0 0 0 .4C3.1 12.6 6.3 15 10 15c1.5 0 2.9-.4 4.1-1l3 3a.5.5 0 0 0 .8-.8l-15-15ZM13.4 13.3c-1 .5-2.2.7-3.4.7-3.2 0-6-2-7.4-4 .8-1.1 1.9-2.2 3.2-3l1.8 1.8a2.5 2.5 0 0 0 3.4 3.4l2.4 1.1Zm-5.4-4.2 2.9 2.9A1.5 1.5 0 0 1 8 9.1ZM10 6c3.2 0 6 2 7.4 4-.5.7-1 1.3-1.7 1.9l.7.7c.8-.7 1.5-1.5 2-2.4a.5.5 0 0 0 0-.4C16.9 7.4 13.7 5 10 5c-1 0-2 .2-2.9.5l.8.8C8.6 6.1 9.3 6 10 6Z',
     copy: 'M8 2a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8ZM7 4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4ZM4 6a2 2 0 0 1 1-1.7V14.5A2.5 2.5 0 0 0 7.5 17h6.2a2 2 0 0 1-1.7 1H7.5A3.5 3.5 0 0 1 4 14.5V6Z',
     rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
     undo: 'M4.5 3a.5.5 0 0 1 .5.5v3.3A7 7 0 1 1 3 10.5a.5.5 0 0 1 1 0 6 6 0 1 0 1.8-4.3H8.5a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5v-4c0-.3.2-.5.5-.5Z',
@@ -116,6 +119,7 @@
     const apps = ITEMS.filter(x => x.type === 'app');
     folders.innerHTML =
       f('#home', 'Dashboard', 'home', '', active === 'home') +
+      f('#news', 'Announcements', 'megaphone', '', active === 'news') +
       f('#fav', 'Favourites', 'star', favs.length || '', active === 'fav') +
       `<div class="grp">Departments</div>` +
       HOME.map(d => f('#d/' + d.id, d.name, null, counts(d), active === d.id, d.color, d.id)).join('') +
@@ -200,19 +204,151 @@
     return `${open.length ? `<ul class="tasks">${open.map(t => taskRow(t, all)).join('')}</ul>` : `<div class="dempty small">${icon('tick', 'i big')}<b>Nothing left to do</b></div>`}
       ${done.length ? `<details class="donebox"><summary>Done (${list.filter(t => t.done).length})</summary><ul class="tasks">${done.map(t => taskRow(t, all)).join('')}</ul></details>` : ''}`;
   }
+  // ---------- announcements (shared by the dashboard and the board) ----------
+  let BOARD = null, boardOpts = { sort: 'recent', topic: '', drafts: false };
+  const pad2 = n => String(n).padStart(2, '0');
+  const fmtStamp = iso => { const d = new Date(iso); return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+  const AV = ['#5B5FC7', '#0F6CBD', '#038387', '#4F9E7B', '#C4314B', '#E06D2B', '#8764B8', '#B4009E', '#486991', '#7A7574'];
+  const avatar = name => { let hsh = 0; for (const c of String(name)) hsh = (hsh * 31 + c.charCodeAt(0)) >>> 0; return `<span class="nav" style="background:${AV[hsh % AV.length]}" aria-hidden="true">${esc(String(name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase())}</span>`; };
+  const topicsNow = () => (BOARD && BOARD.topics) || (DASH && DASH.topics) || [];
+  const emojisNow = () => (BOARD && BOARD.emojis) || (DASH && DASH.emojis) || ['👍', '❤️', '😂', '🎉', '👏', '😮', '😢', '🙏', '🔥', '💯'];
+  function findNews(id) { return [...((BOARD && BOARD.news) || []), ...((DASH && DASH.news) || [])].find(n => n.id === id); }
+  const whoText = r => { const n = r.names; return n.length <= 3 ? n.join(', ') : `${n.slice(0, 3).join(', ')} and ${n.length - 3} more`; };
+  function newsCard(n, { compact = false } = {}) {
+    const t = topicsNow().find(x => x.id === n.topic);
+    return `<article class="ann${n.pinned ? ' pinned' : ''}${n.status === 'draft' ? ' draft' : ''}${compact ? ' compact' : ''}" data-news-id="${n.id}">
+      <header class="ahead">${avatar(n.by)}<div class="awho"><b>${esc(n.by)}</b><time datetime="${esc(n.at)}" title="${esc(new Date(n.at).toLocaleString('en-GB'))}">${fmtStamp(n.at)}${n.edited ? ' · edited' : ''}</time></div>
+        <div class="atags">${n.status === 'draft' ? '<span class="tag drafttag">Draft</span>' : ''}${n.pinned ? `<span class="tag pintag">${icon('pin', 'i16')}Pinned</span>` : ''}${t ? `<span class="tag" style="--tc:${t.color}">${esc(t.name)}</span>` : ''}</div>
+        <button class="eb icon amore" type="button" data-nact="menu" aria-label="Options for ${esc(n.title)}" aria-haspopup="menu">${icon('more')}</button></header>
+      <h3 class="atitle">${esc(n.title)}</h3>
+      ${n.html ? `<div class="abody">${n.html}</div><button class="readmore" type="button" data-nact="more" hidden>Read more</button>` : ''}
+      ${n.image ? `<a class="aimg" href="${esc(n.image)}" target="_blank" rel="noopener" aria-label="Open picture full size"><img src="${esc(n.image)}" alt="" loading="lazy"></a>` : ''}
+      ${n.link ? `<a class="tlink alink"${linkAttrs(n.link)}>${icon('open', 'i16')}Open link</a>` : ''}
+      ${n.status === 'draft' ? `<div class="afoot"><button class="btn primary small" type="button" data-act="news-publish" data-news="${n.id}">Post now</button><button class="btn small" type="button" data-act="news-edit" data-news="${n.id}">Edit draft</button></div>` : `
+      <div class="reacts">${n.reactions.map(r => `<button class="rx${r.mine ? ' mine' : ''}" type="button" data-nact="react" data-emoji="${r.emoji}" aria-pressed="${r.mine}" title="${esc(whoText(r))}" aria-label="${r.emoji} ${r.count}: ${esc(whoText(r))}"><span class="em">${r.emoji}</span>${r.count}</button>`).join('')}
+        <button class="rx add" type="button" data-nact="pick" aria-label="Add a reaction" title="Add a reaction">${icon('smile')}<span class="plus">+</span></button>
+        ${n.reactionCount ? `<button class="who" type="button" data-nact="who">${n.reactionCount === 1 ? '1 reaction' : n.reactionCount + ' reactions'}</button>` : ''}</div>`}
+      ${n.hidden && !compact ? `<div class="ahidden">${icon('eyeoff', 'i16')}Hidden from your dashboard · <button type="button" data-nact="unhide">Show it again</button></div>` : ''}
+    </article>`;
+  }
+  // collapse long messages with a "Read more" button
+  function clampBodies(root) {
+    root.querySelectorAll('.ann .abody').forEach(b => {
+      if (b.closest('.ann').classList.contains('open')) return;
+      const more = b.nextElementSibling; if (more) more.hidden = b.scrollHeight <= b.clientHeight + 2;
+    });
+  }
   function newsHtml() {
     if (!DASH) return '<div class="dload"><span class="spinner"></span>Loading…</div>';
-    if (!DASH.news.length) return `<div class="dempty">${icon('megaphone', 'i big')}<b>No announcements</b><span>${isAdminMe() ? 'Post one to share news with everyone.' : 'Company news will show here.'}</span></div>`;
-    return `<ul class="news">${DASH.news.map(n => `<li class="ann${n.pinned ? ' pinned' : ''}">
-      <div class="ahead"><b>${esc(n.title)}</b>${isAdminMe() ? `<span class="etools"><button class="eb icon" type="button" data-act="news-edit" data-news="${n.id}" title="Edit" aria-label="Edit announcement">${icon('rename')}</button><button class="eb icon danger" type="button" data-act="news-del" data-news="${n.id}" title="Delete" aria-label="Delete announcement">${icon('del')}</button></span>` : ''}</div>
-      ${n.image ? `<a class="aimg" href="${esc(n.image)}" target="_blank" rel="noopener" aria-label="Open picture full size"><img src="${esc(n.image)}" alt="" loading="lazy"></a>` : ''}
-      ${n.body ? `<p>${esc(n.body)}</p>` : ''}
-      <div class="tmeta">${n.pinned ? `<span class="pin">${icon('pin', 'i16')}Pinned</span>` : ''}<span>${esc(n.by)} · ${ago(n.at)}</span>${n.link ? `<a class="tlink"${linkAttrs(n.link)}>${icon('open', 'i16')}Read more</a>` : ''}</div>
-    </li>`).join('')}</ul>`;
+    const foot = DASH.newsTotal ? `<a class="dfootlink" href="#news">${DASH.hiddenCount ? `See all announcements, including ${DASH.hiddenCount} you’ve hidden` : 'See all announcements'}${icon('chev', 'i16')}</a>` : '';
+    if (!DASH.news.length) return `<div class="dempty">${icon('megaphone', 'i big')}<b>${DASH.newsTotal ? 'Nothing new' : 'No announcements'}</b><span>${DASH.newsTotal ? 'You’ve hidden all the announcements from your dashboard.' : isAdminMe() ? 'Post one to share news with everyone.' : 'Company news will show here.'}</span></div>${foot}`;
+    return `<div class="news">${DASH.news.map(n => newsCard(n, { compact: true })).join('')}</div>${foot}`;
+  }
+  function paintBoardTabs() { document.querySelectorAll('#topicTabs [data-topic]').forEach(b => b.setAttribute('aria-selected', b.dataset.topic === boardOpts.topic)); }
+  pane.addEventListener('change', e => { if (e.target.id === 'newsSort') { boardOpts.sort = e.target.value; loadBoard(); } });
+  function viewBoard() {
+    const admin = isAdminMe(), o = boardOpts;
+    setTimeout(loadBoard);
+    return `<div class="pane-inner board">
+      <div class="crumbs"><a href="#home">Home</a>${icon('chev', 'i16')}<span>Announcements</span></div>
+      <div class="bhead2"><h1 class="title">${o.drafts ? 'Draft announcements' : 'Announcements'}</h1>
+        <div class="cmdbar" style="gap:8px">
+          ${admin ? `<button class="btn primary" type="button" data-act="news-add">${icon('add')}Add announcement</button>
+            <button class="btn" type="button" data-nact="drafts">${o.drafts ? 'Back to announcements' : `View drafts<span class="cnt" id="draftCnt"></span>`}</button>
+            <button class="btn subtle" type="button" data-act="news-topics">${icon('rename')}Tags</button>` : ''}
+          <label class="sortsel"><span class="sr">Sort</span><select class="ctl" id="newsSort">
+            <option value="recent"${o.sort === 'recent' ? ' selected' : ''}>Most recent first</option><option value="oldest"${o.sort === 'oldest' ? ' selected' : ''}>Oldest first</option><option value="reacted"${o.sort === 'reacted' ? ' selected' : ''}>Most reacted first</option></select></label>
+        </div></div>
+      <div class="topics" id="topicTabs" role="tablist" aria-label="Filter by tag"></div>
+      <div id="boardList" class="boardlist"><div class="dload"><span class="spinner"></span>Loading…</div></div>
+    </div>`;
+  }
+  function paintBoard() {
+    const tabs = $('#topicTabs'), list = $('#boardList'); if (!tabs || !list || !BOARD) return;
+    const o = boardOpts;
+    tabs.innerHTML = [{ id: '', name: 'All topics', color: '#5FA812' }, ...BOARD.topics].map(t => `<button type="button" role="tab" class="ttab" data-topic="${t.id}" aria-selected="${o.topic === t.id}" style="--tc:${t.color}">${esc(t.name)}</button>`).join('');
+    const c = $('#draftCnt'); if (c) c.textContent = BOARD.draftCount ? ` (${BOARD.draftCount})` : '';
+    list.innerHTML = BOARD.news.length ? BOARD.news.map(n => newsCard(n)).join('')
+      : `<div class="dempty">${icon('megaphone', 'i big')}<b>${o.drafts ? 'No drafts' : o.topic ? 'Nothing with this tag yet' : 'No announcements yet'}</b></div>`;
+    clampBodies(list);
+  }
+  async function loadBoard() {
+    try {
+      const q = new URLSearchParams({ sort: boardOpts.sort }); if (boardOpts.topic) q.set('topic', boardOpts.topic); if (boardOpts.drafts) q.set('drafts', '1');
+      const r = await fetch('/api/news?' + q); if (r.status === 401) return toLogin();
+      BOARD = await r.json(); paintBoard();
+    } catch { const l = $('#boardList'); if (l) l.innerHTML = `<div class="bar-msg error">${icon('err')}<div>Couldn’t load announcements. Check your connection.</div></div>`; }
+  }
+  async function refreshNews() { await Promise.all([$('#dNews') ? loadDash() : null, $('#boardList') ? loadBoard() : null]); }
+  // replace one announcement everywhere after a change, without reloading the page
+  function putNews(n) {
+    for (const src of [BOARD && BOARD.news, DASH && DASH.news]) if (src) { const i = src.findIndex(x => x.id === n.id); if (i >= 0) src[i] = n; }
+    document.querySelectorAll(`.ann[data-news-id="${n.id}"]`).forEach(el => {
+      const open = el.classList.contains('open'), t = document.createElement('div');
+      t.innerHTML = newsCard(n, { compact: el.classList.contains('compact') }); const nu = t.firstElementChild;
+      if (open) nu.classList.add('open'); el.replaceWith(nu); clampBodies(nu.parentElement);
+    });
+  }
+  async function newsPost(id, what, body) {
+    const r = await fetch(`/api/news/${id}/${what}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(out.error || 'That didn’t save. Try again.');
+    return out;
+  }
+  async function react(id, emoji) {
+    try { putNews(await newsPost(id, 'react', { emoji })); } catch (e) { toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); }
+  }
+  async function hideNews(id, hidden) {
+    try {
+      const n = await newsPost(id, 'hide', { hidden });
+      if ($('#dNews')) await loadDash(); else putNews(n);
+      toast(`${icon('check')}<span>${hidden ? 'Hidden from your dashboard. You can still find it in Announcements.' : 'It’s back on your dashboard.'}</span>`, 'ok');
+    } catch (e) { toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); }
+  }
+  function emojiPicker(id, anchor) {
+    closeMenu();
+    const m = h('div', { class: 'ctxmenu emojis', role: 'menu', 'aria-label': 'Choose a reaction' },
+      ...emojisNow().map(e => h('button', { class: 'mi', type: 'button', role: 'menuitem', 'aria-label': e, onclick: () => { closeMenu(); react(id, e); } }, e)));
+    const r = anchor.getBoundingClientRect(); placeMenu(m, r.left, r.bottom + 4, anchor);
+  }
+  function whoReacted(id, anchor) {
+    closeMenu();
+    const n = findNews(id); if (!n) return;
+    const m = h('div', { class: 'ctxmenu whobox', role: 'dialog', 'aria-label': 'Who reacted' },
+      h('div', { class: 'whohead' }, 'Reactions'),
+      ...n.reactions.map(r => h('div', { class: 'whorow' }, h('span', { class: 'em' }, r.emoji), h('div', {}, ...r.names.map(x => h('div', {}, x + (x === (ME && ME.name) && r.mine ? ' (you)' : '')))))));
+    const rc = anchor.getBoundingClientRect(); placeMenu(m, rc.left, rc.bottom + 4, anchor);
+  }
+  function newsMenu(id, anchor) {
+    closeMenu();
+    const n = findNews(id); if (!n) return;
+    const mi = (ic, label, fn, danger) => h('button', { class: 'mi' + (danger ? ' danger' : ''), type: 'button', role: 'menuitem', html: icon(ic) + `<span>${esc(label)}</span>`, onclick: () => { closeMenu(); fn(); } });
+    const items = [];
+    if (n.status !== 'draft') items.push(n.hidden ? mi('eye', 'Show on my dashboard', () => hideNews(id, false)) : mi('eyeoff', 'Hide from my dashboard', () => hideNews(id, true)));
+    if (n.reactionCount) items.push(mi('people', 'See who reacted', () => whoReacted(id, anchor)));
+    if (isAdminMe()) {
+      const ed = act => editor().then(e => e.act(act, { news: id }, anchor));
+      if (items.length) items.push(h('div', { class: 'sep', role: 'separator' }));
+      items.push(mi('rename', 'Edit', () => ed('news-edit')));
+      if (n.status !== 'draft') items.push(mi('pin', n.pinned ? 'Unpin' : 'Pin to the top', () => ed('news-pin')));
+      items.push(mi('del', 'Delete for everyone…', () => ed('news-del'), true));
+    }
+    const m = h('div', { class: 'ctxmenu', role: 'menu', 'aria-label': 'Announcement options' }, ...items);
+    const r = anchor.getBoundingClientRect(); placeMenu(m, r.right - 220, r.bottom + 4, anchor);
+  }
+  function onNewsAct(b) {
+    const card = b.closest('[data-news-id]'), id = card && card.dataset.newsId, a = b.dataset.nact;
+    if (a === 'react') return react(id, b.dataset.emoji);
+    if (a === 'pick') return emojiPicker(id, b);
+    if (a === 'who') return whoReacted(id, b);
+    if (a === 'menu') return newsMenu(id, b);
+    if (a === 'unhide') return hideNews(id, false);
+    if (a === 'more') { card.classList.add('open'); b.hidden = true; return; }
+    if (a === 'drafts') { boardOpts.drafts = !boardOpts.drafts; boardOpts.topic = ''; pane.innerHTML = viewBoard(); return; }
   }
   function paintDash() {
     const t = $('#dTasks'), n = $('#dNews'); if (!t || !n) return;
-    t.innerHTML = tasksHtml(); n.innerHTML = newsHtml();
+    t.innerHTML = tasksHtml(); n.innerHTML = newsHtml(); clampBodies(n);
     const c = $('#dTaskCount'); if (c && DASH) { const k = DASH.tasks.filter(x => !x.done).length; c.textContent = k ? k : ''; c.hidden = !k; }
     document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === taskTab));
   }
@@ -251,8 +387,8 @@
           <div id="dTasks" class="dbody">${tasksHtml()}</div>
         </section>
         <section class="dcard" aria-labelledby="dNewsH">
-          <header class="dch"><h2 id="dNewsH">${icon('megaphone')}Announcements</h2>
-            ${admin ? `<button class="btn subtle small" type="button" data-act="news-add">${icon('add')}Post</button>` : ''}</header>
+          <header class="dch"><h2 id="dNewsH">${icon('megaphone')}<a href="#news">Announcements</a></h2>
+            ${admin ? `<button class="btn subtle small" type="button" data-act="news-add">${icon('add')}Post</button>` : ''}<a class="btn subtle small" href="#news">View all</a></header>
           <div id="dNews" class="dbody">${newsHtml()}</div>
         </section>
       </div>
@@ -342,6 +478,7 @@
     }
     if (hash.startsWith('d/') && byDept[hash.slice(2)]) { const d = byDept[hash.slice(2)]; renderFolders(d.id); pane.innerHTML = viewDept(d); }
     else if (hash === 'fav') { renderFolders('fav'); pane.innerHTML = viewFav(); }
+    else if (hash === 'news') { renderFolders('news'); pane.innerHTML = viewBoard(); }
     else { renderFolders('home'); pane.innerHTML = viewHome(); }
     if (EDIT) {
       const jot = ITEMS.filter(x => x.type === 'doc' && /jotform\.com/i.test(x.url)).length;
@@ -363,7 +500,7 @@
     ED = window.initHubEditor({
       get hub() { return HUB; }, get byDept() { return byDept; }, get items() { return ITEMS; }, get formDept() { return formDept; },
       pane, folders, h, icon, esc, toast, route, setHub, getForm, loadFormList, get formList() { return FORM_LIST; }, FORMS, toLogin, renderFolders: () => renderFolders(activeFolder),
-      closeMenu, openAt: placeMenu, loadDash, get dash() { return DASH; }, get allTasks() { return ALLTASKS; }, get me() { return ME; }
+      closeMenu, openAt: placeMenu, loadDash, get dash() { return DASH; }, get allTasks() { return ALLTASKS; }, get me() { return ME; }, findNews, refreshNews, putNews, get newsTopics() { return topicsNow(); }
     });
     return ED;
   }
@@ -383,6 +520,10 @@
   folders.addEventListener('click', e => { if (e.target.closest('[data-act]')) onAct(e); }, true);
   pane.addEventListener('click', e => {
     if (e.target.closest('[data-act]')) { onAct(e); return; }
+    const na = e.target.closest('[data-nact]');
+    if (na) { onNewsAct(na); return; }
+    const tt = e.target.closest('[data-topic]');
+    if (tt) { boardOpts.topic = tt.dataset.topic; paintBoardTabs(); loadBoard(); return; }
     const dn = e.target.closest('[data-done]');
     if (dn) { toggleTask(dn.dataset.done); return; }
     const tb = e.target.closest('[data-tab]');
@@ -411,6 +552,7 @@
     document.body.append(t);
     setTimeout(() => t.remove(), 9000);
   }
+  let menuOpenedAt = 0;
   function closeMenu() { if (menu) { menu.remove(); menu = null; document.removeEventListener('pointerdown', outside, true); } }
   function outside(e) { if (menu && !menu.contains(e.target)) closeMenu(); }
   function placeMenu(m, x, y, anchor) {
@@ -419,7 +561,7 @@
     m.style.left = Math.max(8, Math.min(x, innerWidth - m.offsetWidth - 8)) + 'px';
     m.style.top = Math.max(8, Math.min(y, innerHeight - m.offsetHeight - 8)) + 'px';
     const first = m.querySelector('.mi'); if (first) first.focus();
-    menu = m;
+    menu = m; menuOpenedAt = Date.now();
     setTimeout(() => document.addEventListener('pointerdown', outside, true));
     m.addEventListener('keydown', e => {
       const items = [...m.querySelectorAll('.mi:not([disabled])')], i = items.indexOf(document.activeElement);
@@ -450,7 +592,7 @@
   });
   ['pointerup', 'pointercancel', 'pointermove'].forEach(t => folders.addEventListener(t, () => clearTimeout(press)));
   folders.addEventListener('click', e => { if (pressed) { e.preventDefault(); pressed = false; } }, true);
-  addEventListener('resize', closeMenu); pane.addEventListener('scroll', closeMenu);
+  addEventListener('resize', closeMenu); pane.addEventListener('scroll', () => { if (Date.now() - menuOpenedAt > 250) closeMenu(); });
 
   // ---------- account menu, change password ----------
   const meBtn = $('#meBtn');

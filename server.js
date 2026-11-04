@@ -7,7 +7,7 @@ const fs = require('fs');
 const Engine = require('./public/engine.js');
 const makeStore = require('./lib/store');
 const { notify, taskAssigned } = require('./lib/mail');
-const { makeBoard } = require('./lib/board');
+const { makeBoard, EMOJIS } = require('./lib/board');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -312,7 +312,7 @@ async function saveHub(doc, by) {
 // Delete uploaded files nothing links to any more (after an hour, so a fresh upload isn't removed before it's used)
 async function tidyDocs() {
   const used = Content.referencedDocIds(HUB), cutoff = Date.now() - 3600e3;
-  for (const n of await board.news()) { const m = n.image && n.image.match(/^\/files\/([0-9a-f-]{36})\//); if (m) used.add(m[1]); }   // announcement pictures
+  for (const n of await board.allNews()) { const m = n.image && n.image.match(/^\/files\/([0-9a-f-]{36})\//); if (m) used.add(m[1]); }   // announcement pictures
   for (const d of await store.listDocs()) if (!used.has(d.id) && new Date(d.createdAt).getTime() < cutoff) await store.deleteDoc(d.id);
 }
 async function contentRoute(req, res, p, m, url) {
@@ -430,6 +430,27 @@ function readBlob(v) {
 const safeNext = n => (typeof n === 'string' && /^\/(?!\/)/.test(n) && !n.startsWith('/login')) ? n : '/';
 
 // ---------- router ----------
+// ---------- announcements as the browser sees them ----------
+async function userNames() { return Object.fromEntries((await store.listUsers()).map(u => [u.id, u.name])); }
+async function presentNews(n, me, names) {
+  names = names || await userNames();
+  const reactions = EMOJIS.filter(e => n.reactions && n.reactions[e] && n.reactions[e].length).map(e => ({
+    emoji: e, count: n.reactions[e].length, mine: n.reactions[e].includes(me.id), names: n.reactions[e].map(id => names[id] || 'Former colleague') }));
+  return { id: n.id, title: n.title, html: n.html !== undefined ? n.html : Content.sanitizeHtml(String(n.body || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])).replace(/\n/g, '<br>')),
+    link: n.link || '', image: n.image || '', pinned: !!n.pinned, topic: n.topic || '', status: n.status || 'published', at: n.at, edited: n.edited || null,
+    by: (n.authorId && names[n.authorId]) || n.by, authorId: n.authorId || null, hidden: (n.hiddenBy || []).includes(me.id), reactions,
+    reactionCount: reactions.reduce((a, r) => a + r.count, 0) };
+}
+async function newsFeed(me, { sort, topic, drafts } = {}) {
+  const [all, topics, names] = await Promise.all([board.allNews(), board.topics(), userNames()]);
+  let list = await Promise.all(all.filter(n => drafts ? n.status === 'draft' : n.status !== 'draft').map(n => presentNews(n, me, names)));
+  if (topic) list = list.filter(n => n.topic === topic);
+  if (sort === 'oldest') list.sort((a, b) => a.at.localeCompare(b.at));
+  else if (sort === 'reacted') list.sort((a, b) => (b.reactionCount - a.reactionCount) || b.at.localeCompare(a.at));
+  else list.sort((a, b) => (b.pinned - a.pinned) || b.at.localeCompare(a.at));
+  return { news: list, topics, draftCount: isAdmin(me) ? all.filter(n => n.status === 'draft').length : 0 };
+}
+
 async function route(req, res) {
   const url = new URL(req.url, 'http://local');
   const p = url.pathname, m = req.method;
@@ -510,8 +531,23 @@ async function route(req, res) {
 
   // ----- dashboard: my tasks and announcements -----
   if (p === '/api/dashboard' && m === 'GET') {
-    const [tasks, news] = await Promise.all([board.tasksFor(user.id), board.news()]);
-    return json(res, 200, { user: pub(user), tasks, news }, { 'Cache-Control': 'no-cache' });
+    const [tasks, feed] = await Promise.all([board.tasksFor(user.id), newsFeed(user, { sort: 'recent' })]);
+    const visible = feed.news.filter(n => !n.hidden);
+    visible.sort((a, b) => (b.pinned - a.pinned) || b.at.localeCompare(a.at));
+    return json(res, 200, { user: pub(user), tasks, news: visible.slice(0, 5), newsTotal: feed.news.length, hiddenCount: feed.news.length - visible.length, topics: feed.topics, emojis: EMOJIS }, { 'Cache-Control': 'no-cache' });
+  }
+  // ----- the announcements board (everyone) -----
+  if (p === '/api/news' && m === 'GET') {
+    const drafts = url.searchParams.get('drafts') === '1' && isAdmin(user);
+    return json(res, 200, Object.assign(await newsFeed(user, { sort: url.searchParams.get('sort'), topic: url.searchParams.get('topic'), drafts }), { emojis: EMOJIS }), { 'Cache-Control': 'no-cache' });
+  }
+  if ((mt = p.match(/^\/api\/news\/([a-z0-9]{1,40})\/(react|hide)$/)) && m === 'POST') {
+    const b = await readJson(req);
+    try {
+      const n = mt[2] === 'react' ? await board.react(mt[1], String(b.emoji || ''), user.id) : await board.hide(mt[1], b.hidden !== false, user.id);
+      if (!n) return json(res, 404, { error: 'That announcement has been removed.' });
+      return json(res, 200, await presentNews(n, user));
+    } catch (e) { if (e instanceof board.Invalid) return json(res, 400, { error: e.message }); throw e; }
   }
   if ((mt = p.match(/^\/api\/tasks\/([a-z0-9]{1,40})\/done$/)) && m === 'POST') {
     const t = await board.setDone(mt[1], (await readJson(req)).done !== false, user, isAdmin(user));
@@ -545,10 +581,12 @@ async function route(req, res) {
           return json(res, 200, t);
         }
       }
-      if (p === '/api/admin/news' && m === 'POST') return json(res, 201, await board.createNews(await readJson(req), user));
+      if (p === '/api/admin/news-topics' && m === 'PUT') return json(res, 200, { topics: await board.saveTopics((await readJson(req)).topics) });
+      const authorOf = async b => { if (b.authorId === undefined) return null; const u = await store.getUser(Number(b.authorId)); if (!u) throw new board.Invalid('Choose who the announcement is from.'); return { id: u.id, name: u.name }; };
+      if (p === '/api/admin/news' && m === 'POST') { const b = await readJson(req); const a = await authorOf(b); return json(res, 201, await presentNews(await board.createNews(Object.assign(b, { author: a }), user), user)); }
       if ((mt = p.match(/^\/api\/admin\/news\/([a-z0-9]{1,40})$/))) {
         if (m === 'DELETE') { const gone = await board.deleteNews(mt[1]); tidyDocs().catch(() => {}); return gone ? json(res, 200, { ok: true }) : json(res, 404, { error: 'That announcement has already been removed.' }); }
-        if (m === 'PUT') { const n = await board.updateNews(mt[1], await readJson(req)); return n ? json(res, 200, n) : json(res, 404, { error: 'That announcement has been removed.' }); }
+        if (m === 'PUT') { const b = await readJson(req); const n = await board.updateNews(mt[1], b, await authorOf(b)); return n ? json(res, 200, await presentNews(n, user)) : json(res, 404, { error: 'That announcement has been removed.' }); }
       }
       return json(res, 404, { error: 'Not found' });
     } catch (e) {

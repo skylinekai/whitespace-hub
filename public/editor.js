@@ -373,19 +373,47 @@ window.initHubEditor = function (ctx) {
       return new File([blob], file.name.replace(/\.(png|webp|jpe?g)$/i, '') + (blob.type === 'image/png' ? '.png' : '.jpg'), { type: blob.type });
     } catch { return file; }
   }
+  // A small rich-text box: bold, italic, underline, strike, heading, lists, link, clear formatting.
+  function richText(html, label) {
+    const ed = h('div', { class: 'rte-body ctl', contenteditable: 'true', role: 'textbox', 'aria-multiline': 'true', 'aria-label': label });
+    ed.innerHTML = html || '';
+    const cmd = (c, v) => { ed.focus(); document.execCommand(c, false, v); };
+    const B = (title, html_, fn) => h('button', { type: 'button', class: 'rtb', title, 'aria-label': title, html: html_, onmousedown: e => e.preventDefault(), onclick: fn });
+    const bar = h('div', { class: 'rte-bar', role: 'toolbar', 'aria-label': 'Formatting' },
+      B('Bold', '<b>B</b>', () => cmd('bold')), B('Italic', '<i>I</i>', () => cmd('italic')), B('Underline', '<u>U</u>', () => cmd('underline')), B('Strikethrough', '<s>S</s>', () => cmd('strikeThrough')),
+      h('span', { class: 'rsep' }),
+      B('Heading', '<b>H</b>', () => cmd('formatBlock', document.queryCommandValue('formatBlock') === 'h3' ? 'p' : 'h3')),
+      B('Numbered list', '1.', () => cmd('insertOrderedList')), B('Bullet list', '•', () => cmd('insertUnorderedList')),
+      h('span', { class: 'rsep' }),
+      B('Add a link', icon('open'), () => { const u = window.prompt('Link address (https://…)'); if (u && /^(https?:\/\/|\/)/i.test(u.trim())) cmd('createLink', u.trim()); }),
+      B('Clear formatting', '<span style="text-decoration:line-through">T</span>', () => { cmd('removeFormat'); cmd('unlink'); }));
+    // pasted text: keep it plain so styles from Word or email don't come along
+    ed.addEventListener('paste', e => { const t = (e.clipboardData || {}).getData && e.clipboardData.getData('text/plain'); if (t && !(e.clipboardData.files || []).length) { e.preventDefault(); document.execCommand('insertText', false, t); } });
+    const wrap = h('div', { class: 'rte' }, bar, ed);
+    wrap.html = () => { const x = ed.innerHTML.trim(); return /^(<(p|div|br)[^>]*>\s*(<br>)?\s*(<\/(p|div)>)?\s*)*$/i.test(x) && !ed.textContent.trim() ? '' : x; };
+    wrap.editor = ed;
+    return wrap;
+  }
   async function newsDialog(id) {
-    const n = id ? ctx.dash.news.find(x => x.id === id) : null;
-    const title = input('nwTitle', n ? n.title : '', { maxlength: '200', placeholder: 'e.g. Office closed on Friday' });
-    const msg = h('textarea', { id: 'nwBody', class: 'ctl', rows: 6, maxlength: '5000' }); msg.value = n ? n.body || '' : '';
+    const n = id ? ctx.findNews(id) : null;
+    let people = [];
+    try { people = await api('/api/admin/users'); } catch { }
+    const topics = ctx.newsTopics;
+    const title = input('nwTitle', n ? n.title : '', { maxlength: '200', placeholder: 'e.g. Oktoberfest comes to Whitespace' });
+    const rte = richText(n ? n.html : '', 'Message');
     const link = input('nwLink', n ? n.link : '', { placeholder: 'Optional, https://…', inputmode: 'url' });
     const pin = h('input', { type: 'checkbox', id: 'nwPin', checked: !!(n && n.pinned) });
+    const topic = h('select', { id: 'nwTopic', class: 'ctl' }, h('option', { value: '' }, 'No tag'), ...topics.map(t => h('option', { value: t.id }, t.name)));
+    topic.value = n ? n.topic || '' : '';
+    const author = h('select', { id: 'nwAuthor', class: 'ctl' }, ...(people.length ? people : [ctx.me]).map(u => h('option', { value: u.id }, u.name + (u.id === ctx.me.id ? ' (you)' : ''))));
+    author.value = String(n && n.authorId ? n.authorId : ctx.me.id);
     // picture
     let image = n && n.image ? n.image : '';
     const fileIn = h('input', { type: 'file', id: 'nwImg', accept: 'image/jpeg,image/png,image/gif,image/webp' });
     const preview = h('div', { class: 'imgprev' });
     const pick = h('span', { class: 'btn' });
     const removeBtn = h('button', { class: 'btn subtle dangertext', type: 'button', onclick: () => { image = ''; paint(); } }, 'Remove picture');
-    const drop = h('label', { class: 'filebox', for: 'nwImg' }, pick, h('span', { class: 'hint2' }, 'JPG, PNG, GIF or WebP. Or drag a picture here.'), fileIn);
+    const drop = h('label', { class: 'filebox', for: 'nwImg' }, pick, h('span', { class: 'hint2' }, 'JPG, PNG, GIF or WebP. Or drag a picture here, or paste one.'), fileIn);
     function paint(busy) {
       pick.innerHTML = icon('upload') + (image ? 'Change picture' : 'Add a picture');
       preview.innerHTML = busy ? `<span class="spinner"></span><span>Uploading…</span>` : image ? `<img src="${esc(image)}" alt="">` : '';
@@ -407,28 +435,61 @@ window.initHubEditor = function (ctx) {
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
     drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); upload(e.dataTransfer.files[0]); });
-    // paste a screenshot straight in
-    const onPaste = e => { const f = [...(e.clipboardData || {}).files || []].find(x => x.type.startsWith('image/')); if (f) { e.preventDefault(); upload(f); } };
-    const body = h('div', {}, field('Headline', title), field('Message', msg),
+    const onPaste = e => { const f = [...((e.clipboardData || {}).files || [])].find(x => x.type.startsWith('image/')); if (f) { e.preventDefault(); upload(f); } };
+    const body = h('div', {}, field('Headline', title),
+      h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Message'), rte),
       h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Picture'), drop, preview, removeBtn),
+      h('div', { class: 'grid2' }, field('Tag', topic), field('From', author)),
       field('Link', link), h('label', { class: 'opt', for: 'nwPin', style: 'margin-top:10px' }, pin, h('span', {}, 'Pin to the top')));
     paint();
     document.addEventListener('paste', onPaste);
-    const p = dialog(n ? 'Edit announcement' : 'New announcement', body, { submit: n ? 'Save' : 'Post', wide: true });
+    const isDraft = n && n.status === 'draft';
+    const p = dialog(n ? (isDraft ? 'Edit draft' : 'Edit announcement') : 'New announcement', body, { submit: n && !isDraft ? 'Save' : 'Post', wide: true });
     p.then(() => document.removeEventListener('paste', onPaste));
+    let mode = n && !isDraft ? 'published' : 'published';
+    if (!n || isDraft) {
+      const draftBtn = h('button', { class: 'btn', type: 'button', onclick: () => { mode = 'draft'; body._box.requestSubmit(); } }, 'Save as draft');
+      const foot = body._box.querySelector('.dfoot'); foot.insertBefore(draftBtn, foot.lastElementChild);
+      body._box.querySelector('.dfoot .primary').addEventListener('click', () => { mode = 'published'; });
+    }
     body._box.onsave = async () => {
-      if (!title.value.trim()) throw new Error('Write a headline.');
+      if (!title.value.trim()) { mode = 'published'; throw new Error('Write a headline.'); }
       if (preview.querySelector('.spinner')) throw new Error('Wait for the picture to finish uploading.');
-      await api(n ? '/api/admin/news/' + n.id : '/api/admin/news', { method: n ? 'PUT' : 'POST', json: { title: title.value, body: msg.value, link: link.value.trim(), pinned: pin.checked, image } });
-      ok(n ? 'Announcement saved.' : 'Posted. Everyone sees it on their dashboard.'); ctx.loadDash(); return true;
+      const data = { title: title.value, html: rte.html(), link: link.value.trim(), pinned: pin.checked, image, topic: topic.value, authorId: Number(author.value), status: mode };
+      const out = await api(n ? '/api/admin/news/' + n.id : '/api/admin/news', { method: n ? 'PUT' : 'POST', json: data });
+      ok(mode === 'draft' ? 'Saved as a draft. Only admins can see it.' : n && !isDraft ? 'Announcement saved.' : 'Posted. Everyone can see it now.');
+      ctx.refreshNews(); return out;
     };
     return p;
   }
   async function delNews(id) {
-    const n = ctx.dash.news.find(x => x.id === id); if (!n) return;
-    if (!(await confirmBox(`Delete “${n.title}”?`, 'It will be removed from everyone’s dashboard.', 'Delete'))) return;
+    const n = ctx.findNews(id); if (!n) return;
+    if (!(await confirmBox(`Delete “${n.title}”?`, 'This removes it for everyone, including from past announcements. To take it off only your own dashboard, use “Hide from my dashboard” instead.', 'Delete for everyone'))) return;
     try { await api('/api/admin/news/' + id, { method: 'DELETE' }); ok('Announcement deleted.'); } catch (e) { bad(e.message); }
-    ctx.loadDash();
+    ctx.refreshNews();
+  }
+  async function newsQuick(id, change, msg) {
+    try { const out = await api('/api/admin/news/' + id, { method: 'PUT', json: change }); ok(msg); ctx.refreshNews(); return out; } catch (e) { bad(e.message); }
+  }
+  async function topicsDialog() {
+    const list = clone(ctx.newsTopics);
+    const rows = h('div', { class: 'tagrows' });
+    const draw = () => {
+      rows.innerHTML = '';
+      list.forEach((t, i) => {
+        const nm = h('input', { class: 'ctl', value: t.name, maxlength: '40', 'aria-label': 'Tag name' }); nm.oninput = () => { t.name = nm.value; };
+        const col = h('input', { type: 'color', class: 'swc', value: t.color, 'aria-label': 'Tag colour' }); col.oninput = () => { t.color = col.value; };
+        rows.append(h('div', { class: 'tagrow' }, col, nm,
+          h('button', { class: 'eb icon', type: 'button', title: 'Move up', 'aria-label': 'Move up', disabled: i === 0 || null, html: icon('up'), onclick: () => { move(list, i, -1); draw(); } }),
+          h('button', { class: 'eb icon danger', type: 'button', title: 'Delete tag', 'aria-label': 'Delete tag', html: icon('del'), onclick: () => { list.splice(i, 1); draw(); } })));
+      });
+    };
+    draw();
+    const body = h('div', {}, h('p', { class: 'subtitle', style: 'margin:6px 0 4px' }, 'Tags show on announcements and as filters on the Announcements page. Deleting a tag doesn’t delete any announcements.'), rows,
+      h('button', { class: 'btn subtle', type: 'button', style: 'margin-top:8px', html: icon('add') + 'Add a tag', onclick: () => { list.push({ id: '', name: 'New tag', color: COLORS[list.length % COLORS.length] }); draw(); rows.lastElementChild.querySelector('input.ctl').select(); } }));
+    const p = dialog('Announcement tags', body, { submit: 'Save tags', wide: true });
+    body._box.onsave = async () => { await api('/api/admin/news-topics', { method: 'PUT', json: { topics: list } }); ok('Tags saved.'); ctx.refreshNews(); return true; };
+    return p;
   }
 
   // ---------- action dispatcher (buttons with data-act in the hub) ----------
@@ -457,6 +518,9 @@ window.initHubEditor = function (ctx) {
       case 'news-add': return newsDialog();
       case 'news-edit': return newsDialog(data.news);
       case 'news-del': return delNews(data.news);
+      case 'news-pin': { const n = ctx.findNews(data.news); return n && newsQuick(n.id, { pinned: !n.pinned }, n.pinned ? 'Unpinned.' : 'Pinned to the top.'); }
+      case 'news-publish': return newsQuick(data.news, { status: 'published' }, 'Posted. Everyone can see it now.');
+      case 'news-topics': return topicsDialog();
     }
   }
 
