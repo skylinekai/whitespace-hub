@@ -104,6 +104,12 @@ The first page everyone sees. It welcomes them by their full name over the showr
 - **Announcements:** admins select **Post**. Pinned announcements stay at the top. Everyone sees them.
 - **Full names:** set them in **Users → Rename**. People who sign in with Microsoft get their full name from Microsoft 365 automatically if only a first name is stored. `INITIAL_ADMIN_NAME` sets the first admin's name.
 
+## Admins
+
+Kai and Jack Stevens (jack@skylinewhitespace.com) are admins. The first time this version starts, it makes Jack an admin: it promotes his existing account, or creates one if he doesn't have one. It does this only once, so if you change his permission in **Users** later, that change stays. Nobody is removed or downgraded. If the app had to create Jack's account and email-and-password sign-in is on, a one-time password for him is printed in Render's **Logs**. With Microsoft sign-in he just uses **Sign in with Microsoft**. To make other people admins when the app starts, list their emails in the `ADMIN_EMAILS` setting, separated by commas.
+
+Only admins can remove users. Nobody can remove their own account, and the last admin can't be removed.
+
 ## Changing content (admins)
 
 Select **Edit** in the top bar. Everything saves straight away and shows for everyone. Select **Done** when you're finished.

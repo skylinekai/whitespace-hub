@@ -82,6 +82,23 @@ async function initAuth() {
     await store.createUser({ email: f.email, name: f.name, role: f.role, passwordHash: Auth.hashPassword(p.pw) });
     announce(f.email, p, 'Created the first admin account:');
   }
+  // Make sure these people are admins. Runs once per person, so a later change in Users is respected.
+  // Never removes or downgrades anyone. ADMIN_EMAILS (comma-separated) can add more.
+  const ADMINS = [{ email: 'jack@skylinewhitespace.com', name: 'Jack Stevens' },
+    ...(process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean).map(email => ({ email, name: email.split('@')[0] }))];
+  const done = new Set((await store.getSetting('adminsEnsured')) || []);
+  for (const a of ADMINS) {
+    if (done.has(a.email)) continue;
+    const u = await store.getUserByEmail(a.email);
+    if (u && u.role !== 'admin') { await store.updateUser(u.id, { role: 'admin' }); console.log(`[auth] ${u.name} (${a.email}) is now an admin.`); }
+    else if (!u) {
+      const p = initialPassword(); if (p.fromSetting) p.pw = Auth.tempPassword(), p.fromSetting = false;   // never reuse Kai's starting password
+      await store.createUser({ email: a.email, name: a.name, role: 'admin', passwordHash: Auth.hashPassword(p.pw) });
+      announce(a.email, p, `Created an admin account for ${a.name}:`);
+    }
+    done.add(a.email);
+  }
+  await store.setSetting('adminsEnsured', [...done]);
   // Replace the password that older versions had built in, wherever it is still in use.
   for (const u of await store.listUsers()) {
     if (!Auth.isRetiredHash(u.passwordHash)) continue;

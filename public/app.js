@@ -139,7 +139,7 @@
     const ext = x.type === 'doc' ? x.ext : x.type;
     const badge = BADGE[ext] || esc((x.ext || 'file').toUpperCase().slice(0, 4));
     const external = x.type === 'doc' || x.type === 'link';
-    return `<div class="row">
+    return `<div class="row" data-item="${x.it.id}">
       <span class="ft ${esc(ext)}" aria-hidden="true">${badge}</span>
       <span class="tt"><b>${hl(x.t, term)}</b>${x.m ? `<small>${hl(x.m, term)}</small>` : ''}</span>
       ${where ? `<span class="where"><span class="cat" style="background:${x.dept.color}"></span>${esc(x.dept.name)}</span>` : ''}
@@ -277,7 +277,7 @@
       let body = '', run = [];
       const flush = () => { if (run.length) { body += `<div class="list">${run.map(x => row(x)).join('')}</div>`; run = []; } };
       for (const it of s.items) {
-        if (it.kind === 'note') { flush(); body += EDIT ? `<div class="note editing" data-item="${it.id}"><div class="ntext">${it.html || '<p><i>Empty note</i></p>'}</div>${itemTools(it.id)}</div>` : `<div class="note">${it.html}</div>`; }
+        if (it.kind === 'note') { flush(); body += EDIT ? `<div class="note editing" data-item="${it.id}"><div class="ntext">${it.html || '<p><i>Empty note</i></p>'}</div>${itemTools(it.id)}</div>` : `<div class="note" data-item="${it.id}">${it.html}</div>`; }
         else run.push(rows.find(x => x.it === it));
       }
       flush();
@@ -291,7 +291,7 @@
       const add = EDIT ? `<button class="addrow" type="button" data-act="item-add" data-sec="${s.id}">${icon('add')}Add to ${s.title ? '“' + esc(s.title) + '”' : 'this section'}</button>` : '';
       return `<section class="dsec" data-sec="${s.id}">${head}${body}${add}</section>`;
     }).join('');
-    return `<div class="pane-inner">
+    return `<div class="pane-inner" data-dept="${d.id}">
       <div class="crumbs"><a href="#home">Home</a>${icon('chev', 'i16')}<span>${esc(d.name)}</span></div>
       <div class="dhead"><h1 class="title" style="display:flex;align-items:center;gap:10px"><span class="cat" style="background:${d.color};width:14px;height:14px"></span>${esc(d.name)}</h1>
         ${EDIT ? `<span class="etools"><button class="eb" type="button" data-act="dept-rename" data-dept="${d.id}">${icon('rename')}<span>Rename</span></button><button class="eb" type="button" data-act="dept-color" data-dept="${d.id}">${icon('palette')}<span>Colour</span></button><button class="eb danger" type="button" data-act="dept-del" data-dept="${d.id}">${icon('del')}<span>Delete folder</span></button></span>` : ''}</div>
