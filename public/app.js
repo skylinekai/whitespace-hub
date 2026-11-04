@@ -208,7 +208,7 @@
     if (!TODO.connected) return `<div class="todo">${head()}<div class="todoconnect"><p>${TODO.expired ? 'Your connection to Microsoft To Do has expired.' : 'See your Microsoft To Do tasks here, tick them off and add new ones. Changes sync with To Do on your phone and in Outlook.'}</p>
       <a class="btn" href="/auth/microsoft/todo">${TODO.expired ? 'Connect again' : 'Connect Microsoft To Do'}</a></div></div>`;
     const tools = `<a class="btn subtle small" href="https://to-do.office.com/tasks/" target="_blank" rel="noopener">Open To Do</a><button class="eb icon" type="button" data-todo="refresh" title="Refresh" aria-label="Refresh To Do tasks">${icon('undo')}</button>`;
-    if (TODO.error) return `<div class="todo">${head(tools)}<div class="bar-msg error" style="margin:6px 8px">${icon('err')}<div>${esc(TODO.error)}</div></div></div>`;
+    if (TODO.error) return `<div class="todo">${head(tools)}<div class="bar-msg error" style="margin:6px 8px">${icon('err')}<div>${esc(TODO.error)}${TODO.detail ? `<div class="tdetail">Microsoft said: ${esc(TODO.detail)}</div>` : ''}<div style="margin-top:6px"><button class="btn small" type="button" data-todo="refresh">Try again</button> <button class="btn subtle small" type="button" data-todo="disconnect">Disconnect</button></div></div></div></div>`;
     const ts = TODO.tasks.slice().sort((x, y) => (x.due || '9999').localeCompare(y.due || '9999') || (y.important - x.important) || x.title.localeCompare(y.title));
     const show = todoAll ? ts : ts.slice(0, 12);
     const many = TODO.lists.length > 1;
@@ -222,6 +222,7 @@
           <div class="tmeta">${dueInfo({ due: t.due, done: false })}${many ? `<span>${esc(t.list)}</span>` : ''}</div></div></li>`).join('')}</ul>
         ${ts.length > show.length ? `<button class="morelink" type="button" data-todo="all">Show all ${ts.length}</button>` : ''}`
         : `<div class="dempty small"><b>Nothing to do in To Do</b></div>`}
+      ${TODO.skipped && TODO.skipped.length ? `<div class="todofoot">Couldn’t load: ${esc(TODO.skipped.join(', '))}</div>` : ''}
       <div class="todofoot">Connected as ${esc(TODO.email || '')} · <button type="button" data-todo="disconnect">Disconnect</button></div></div>`;
   }
   async function todoAct(b) {

@@ -564,8 +564,10 @@ async function route(req, res) {
     try { return json(res, 200, Object.assign({ available: true, connected: true, email: st.email }, await todo.tasks(user.id, url.searchParams.has('fresh'))), { 'Cache-Control': 'no-cache' }); }
     catch (e) {
       if (e.code === 'reconnect') return json(res, 200, { available: true, connected: false, expired: true });
-      console.error('[mstodo] load failed:', e.message);
-      return json(res, 200, { available: true, connected: true, error: 'Couldn’t reach Microsoft To Do just now. Try again in a minute.' });
+      console.error('[mstodo] load failed for', user.email + ':', e.message);
+      const hint = /MailboxNotEnabledForRESTAPI|MailboxNotFound|ResourceNotFound/i.test(e.message) ? ' Your account may not have an Exchange Online mailbox with To Do.'
+        : /403|Forbidden|AccessDenied|Authorization_RequestDenied/i.test(e.message) ? ' The Tasks.ReadWrite permission may be missing. Ask your IT admin to grant it, then select Disconnect and connect again.' : '';
+      return json(res, 200, { available: true, connected: true, error: 'Couldn’t load your Microsoft To Do tasks.' + hint, detail: e.message.slice(0, 300) });
     }
   }
   if ((p === '/api/mstodo/done' || p === '/api/mstodo/add') && m === 'POST') {
