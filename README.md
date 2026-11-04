@@ -4,7 +4,7 @@ The staff hub for forms, policies and documents, with all 53 forms rebuilt so th
 
 - **Hub** (`/`): departments, search, favourites and every form, styled like Outlook on the web.
 - **Forms** (`/#form/<id>`): the same questions and show/hide rules as the Jotform versions, with file uploads, signatures, star ratings, product pickers and drafts that save on the device.
-- **Sign-in** (`/login`): everything is behind a login. Two permissions: **Admin** (everything, including submissions, users and renaming folders) and **Viewer** (hub, forms and documents; carbon platform read-only).
+- **Sign-in** (`/login`): everything is behind a login, with **Sign in with Microsoft** for Microsoft 365 accounts (see below). Two permissions: **Admin** (everything, including submissions, users and renaming folders) and **Viewer** (hub, forms and documents; carbon platform read-only).
 - **Submissions** (`/admin`, admins): an Outlook-style inbox. Forms are folders; open a submission to read it (including who sent it), see photos and signatures, mark it done, print it or download a CSV.
 - **Users** (`/admin#users`, admins): add people, switch them between Admin and Viewer, reset passwords, remove accounts.
 - **Carbon platform** (`/carbon`): company Scope 1–3 footprint, stand footprints, targets, SECR and GHG reports. It uses the hub sign-in, so nobody signs in twice. See `carbon/README.md` for what it does and the note on emission factors.
@@ -28,15 +28,53 @@ The quickest way is the Blueprint, which creates the web service **and** its dat
 3. Render will ask for the values marked *sync: false*. Fill in at least:
    | Setting | What to put |
    |---|---|
+   | `INITIAL_ADMIN_PASSWORD` | The password for the first admin account (kai@skylinewhitespace.com). Used only when that account is first created. If you leave it blank, a one-time password is printed in the service's **Logs**. |
    | `PUBLIC_URL` | The site address, e.g. `https://whitespace-hub.onrender.com` (used for links in emails). |
    | `NOTIFY_EMAILS` | Who gets emailed about new submissions, comma separated. |
    | `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | The mailbox that sends the emails (see below). |
    | `ANTHROPIC_API_KEY` | Optional. Turns on the carbon platform's AI import of bills and invoices. |
-4. Deploy, then sign in at `/login` with the first admin account (kai@skylinewhitespace.com). It is created automatically the first time the app starts. Change its password from the account menu (your initials, top right).
+4. Deploy, then sign in at `/login` as kai@skylinewhitespace.com with the password from `INITIAL_ADMIN_PASSWORD` (or the one-time password in the Logs). Change it from the account menu (your initials, top right). No password is stored in the code.
 5. Add everyone else under **Users**. Each person gets a temporary password to change after they sign in.
 
 
 > Without `DATABASE_URL` the app saves submissions to the server's own disk. That is fine for trying it out, but Render wipes that disk on every deploy, so always connect Postgres for real use. The dashboard shows a warning until you do.
+
+## Sign in with Microsoft (Microsoft 365 accounts)
+
+Staff can sign in with their Skyline Whitespace Microsoft 365 account. Two-factor sign-in (Microsoft Authenticator, Face ID or fingerprint on phones, Windows Hello) is then handled by Microsoft, using your company's Microsoft security settings. The hub never sees passwords, codes or faces.
+
+**1. Register the app in Microsoft Entra** (a Microsoft 365 admin can do this in about five minutes)
+1. Go to **entra.microsoft.com → Applications → App registrations → New registration**.
+2. Name: `Whitespace Hub`. Supported account types: **Accounts in this organizational directory only (single tenant)**.
+3. Redirect URI: platform **Web**, address `https://YOUR-SITE.onrender.com/auth/microsoft/callback` (use your custom domain if you have one). Select **Register**.
+4. On the app's **Overview** page, copy the **Application (client) ID** and the **Directory (tenant) ID**.
+5. Go to **Certificates & secrets → New client secret**, choose an expiry (24 months is the longest), and copy the **Value** straight away. Put a reminder in your calendar to renew it before it expires.
+6. Leave **API permissions** as they are (`User.Read` is enough).
+
+**2. Add the settings in Render** (service → Environment)
+| Setting | What to put |
+|---|---|
+| `MS_TENANT_ID` | Directory (tenant) ID |
+| `MS_CLIENT_ID` | Application (client) ID |
+| `MS_CLIENT_SECRET` | The client secret **Value** |
+| `PUBLIC_URL` | Your site address, exactly as in the redirect URI but without `/auth/microsoft/callback` |
+
+Save and let it redeploy. The login page now shows **Sign in with Microsoft**. Your account (kai@skylinewhitespace.com) is matched by email and stays an Admin.
+
+**Who can get in**
+- By default, anyone in your Microsoft 365 organisation can sign in and is added as a **Viewer**. Promote people under **Users**.
+- To allow only people you've added under Users, set `MS_AUTO_ADD=0`.
+- To limit it in Microsoft instead: Entra → **Enterprise applications → Whitespace Hub → Properties → Assignment required = Yes**, then assign people or groups.
+
+**Two-factor and Face ID**
+- Turn on multi-factor sign-in in Entra (Security defaults, or a Conditional Access policy requiring MFA).
+- Staff set up Microsoft Authenticator (or a passkey) at **mysignins.microsoft.com**. On iPhones and Android phones the Authenticator app can use Face ID or a fingerprint. The hub's account menu has a link to these settings.
+
+**Email and password as a backup**
+- Email and password sign-in stays available under "Sign in with email and password instead", so you can still get in if Microsoft is ever misconfigured.
+- Once Microsoft sign-in is working, set `PASSWORD_LOGIN=off` to remove passwords completely. Passwords can't be turned off unless Microsoft sign-in is set up, so you can't lock yourself out.
+
+**If it doesn't work**, check the service's **Logs** for lines starting with `[microsoft]`. Common causes: the redirect URI in Entra doesn't exactly match `PUBLIC_URL` + `/auth/microsoft/callback`, the client secret has expired, or `MS_TENANT_ID` was set to a domain name instead of the tenant ID.
 
 ## If Carbon says it isn't available
 

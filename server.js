@@ -38,6 +38,8 @@ const isSecure = req => req.headers['x-forwarded-proto'] === 'https';
 
 // ---------- accounts and sign-in ----------
 const Auth = require('./lib/auth');
+const MS = require('./lib/microsoft');
+const PASSWORD_LOGIN = process.env.PASSWORD_LOGIN !== 'off' || !MS.enabled;   // never lock everyone out
 let SECRET = process.env.SESSION_SECRET || '';
 let sessions = null;
 async function initAuth() {
@@ -46,10 +48,29 @@ async function initAuth() {
     if (!SECRET) { SECRET = crypto.randomBytes(32).toString('hex'); await store.setSetting('sessionSecret', SECRET); }
   }
   sessions = Auth.makeSessions(SECRET);
+  if (MS.problem) console.error('[microsoft] ' + MS.problem);
+  console.log(`[auth] Sign in with Microsoft: ${MS.enabled && !MS.problem ? 'on' : 'off'} · email and password: ${PASSWORD_LOGIN ? 'on' : 'off'}`);
+  const initialPassword = () => {
+    if (!PASSWORD_LOGIN) return { pw: Auth.tempPassword(), microsoft: true };
+    const pw = process.env.INITIAL_ADMIN_PASSWORD;
+    if (pw && !Auth.passwordProblem(pw)) return { pw, fromSetting: true };
+    if (pw) console.warn('[auth] INITIAL_ADMIN_PASSWORD is too weak (use 8+ characters with a number or symbol). Using a one-time password instead.');
+    return { pw: Auth.tempPassword(), fromSetting: false };
+  };
+  const announce = (email, p, why) => console.log(p.microsoft ? `[auth] ${why} ${email}. Sign in with Microsoft using that account.` : p.fromSetting
+    ? `[auth] ${why} ${email}. Sign in with the password in INITIAL_ADMIN_PASSWORD, then change it from your account menu.`
+    : `[auth] ${why} ${email}. One-time password: ${p.pw}  (sign in, then change it from your account menu)`);
   if ((await store.countUsers()) === 0) {
-    const s = Auth.SEED_ADMIN;
-    await store.createUser({ email: s.email, name: s.name, role: s.role, passwordHash: s.passwordHash });
-    console.log(`[auth] Created the first admin account: ${s.email}`);
+    const f = Auth.FIRST_ADMIN, p = initialPassword();
+    await store.createUser({ email: f.email, name: f.name, role: f.role, passwordHash: Auth.hashPassword(p.pw) });
+    announce(f.email, p, 'Created the first admin account:');
+  }
+  // Replace the password that older versions had built in, wherever it is still in use.
+  for (const u of await store.listUsers()) {
+    if (!Auth.isRetiredHash(u.passwordHash)) continue;
+    const p = initialPassword();
+    await store.updateUser(u.id, { passwordHash: Auth.hashPassword(p.pw), tokenVersion: (u.tokenVersion || 0) + 1 });
+    announce(u.email, p, 'Replaced the old built-in password for');
   }
 }
 function readCookie(req, name) {
@@ -66,7 +87,7 @@ async function currentUser(req) {
   if (u && (u.tokenVersion || 0) !== d.v) u = null;
   return (req._user = u);
 }
-const pub = u => u && { id: u.id, email: u.email, name: u.name, role: u.role, lastLogin: u.lastLogin || null, createdAt: u.createdAt || null };
+const pub = u => u && { id: u.id, email: u.email, name: u.name, role: u.role, lastLogin: u.lastLogin || null, createdAt: u.createdAt || null, microsoft: !!u.msOid };
 const isAdmin = u => !!u && u.role === 'admin';
 const ROLES = ['admin', 'viewer'];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -245,6 +266,14 @@ function proxyCarbon(req, res, user) {
   req.pipe(up);
 }
 
+// Short-lived signed values (used to carry Microsoft sign-in state through the redirect)
+const signBlob = obj => { const b = Buffer.from(JSON.stringify(obj)).toString('base64url'); return b + '.' + crypto.createHmac('sha256', SECRET).update('blob:' + b).digest('base64url'); };
+function readBlob(v) {
+  if (!v || v.indexOf('.') < 0) return null;
+  const [b, sig] = v.split('.'), good = crypto.createHmac('sha256', SECRET).update('blob:' + b).digest('base64url');
+  if (sig.length !== good.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good))) return null;
+  try { return JSON.parse(Buffer.from(b, 'base64url').toString()); } catch { return null; }
+}
 const safeNext = n => (typeof n === 'string' && /^\/(?!\/)/.test(n) && !n.startsWith('/login')) ? n : '/';
 
 // ---------- router ----------
@@ -255,12 +284,38 @@ async function route(req, res) {
   if (p === '/healthz') return send(res, 200, 'ok');
 
   // ----- signing in and out (open to everyone) -----
+  if (p === '/api/login-options' && m === 'GET') return json(res, 200, { microsoft: MS.enabled && !MS.problem, password: PASSWORD_LOGIN }, { 'Cache-Control': 'no-cache' });
+  if (p === '/auth/microsoft/start' && m === 'GET') {
+    if (!MS.enabled || MS.problem) return send(res, 302, '', { Location: '/login?error=ms-off' });
+    const { url: to, pending } = MS.start(req, safeNext(url.searchParams.get('next')));
+    return send(res, 302, '', { Location: to, 'Set-Cookie': `wsh_ms=${encodeURIComponent(signBlob(pending))}; Path=/auth/microsoft; HttpOnly; SameSite=Lax; Max-Age=600${isSecure(req) ? '; Secure' : ''}` });
+  }
+  if (p === '/auth/microsoft/callback' && m === 'GET') {
+    const clearMs = `wsh_ms=; Path=/auth/microsoft; HttpOnly; SameSite=Lax; Max-Age=0`;
+    const back = (code, nxt) => send(res, 302, '', { Location: `/login?error=${code}${nxt && nxt !== '/' ? '&next=' + encodeURIComponent(nxt) : ''}`, 'Set-Cookie': clearMs });
+    if (!MS.enabled) return back('ms-off');
+    const pending = readBlob(readCookie(req, 'wsh_ms'));
+    let who;
+    try { who = await MS.finish(req, url.searchParams, pending); }
+    catch (e) { console.error('[microsoft] sign-in failed:', e.code, e.message); return back(e.code === 'denied' ? 'ms-denied' : e.code === 'tenant' ? 'ms-tenant' : e.code === 'expired' || e.code === 'state' ? 'ms-expired' : 'ms-failed', pending && pending.next); }
+    let u = (await store.getUserByMsOid(who.oid)) || (await store.getUserByEmail(who.email));
+    if (!u) {
+      if (!MS.autoAdd) { console.log(`[microsoft] ${who.email} isn't in Users, so sign-in was refused.`); return back('ms-not-added'); }
+      u = await store.createUser({ email: who.email, name: who.name.slice(0, 80), role: 'viewer', passwordHash: Auth.hashPassword(Auth.tempPassword() + Auth.tempPassword()) });
+      console.log(`[microsoft] Added ${who.email} as a Viewer on first sign-in.`);
+    }
+    const f = { lastLogin: new Date().toISOString() };
+    if (!u.msOid) f.msOid = who.oid;
+    await store.updateUser(u.id, f);
+    return send(res, 302, '', { Location: safeNext(pending.next), 'Set-Cookie': [sessionCookie(req, u), clearMs] });
+  }
   if (p === '/api/login' && m === 'POST') {
+    if (!PASSWORD_LOGIN) return json(res, 403, { error: 'Sign in with your Microsoft account.' });
     if (limited(req, 'login', 10, 15 * 60e3)) return json(res, 429, { error: 'Too many attempts. Wait 15 minutes and try again.' });
     const body = await readJson(req);
     const email = String(body.email || '').trim().toLowerCase(), pw = String(body.password || '');
     const u = email ? await store.getUserByEmail(email) : null;
-    const ok = Auth.verifyPassword(pw, u ? u.passwordHash : Auth.SEED_ADMIN.passwordHash) && !!u;
+    const ok = Auth.verifyPassword(pw, u ? u.passwordHash : Auth.DUMMY_HASH) && !!u;
     if (!ok) return json(res, 401, { error: 'That email or password isn’t right.' });
     await store.updateUser(u.id, { lastLogin: new Date().toISOString() });
     return json(res, 200, { ok: true, user: pub(u) }, { 'Set-Cookie': sessionCookie(req, u) });
@@ -285,8 +340,9 @@ async function route(req, res) {
   if (p.startsWith('/carbon/')) return proxyCarbon(req, res, user);
   if ((mt = p.match(/^\/api\/forms\/(\d+)\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1], user);
 
-  if (p === '/api/me' && m === 'GET') return json(res, 200, pub(user));
+  if (p === '/api/me' && m === 'GET') return json(res, 200, Object.assign(pub(user), { passwordLogin: PASSWORD_LOGIN, microsoftLogin: MS.enabled && !MS.problem }));
   if (p === '/api/me/password' && m === 'POST') {
+    if (!PASSWORD_LOGIN) return json(res, 403, { error: 'Passwords are managed by Microsoft. Change yours at mysignins.microsoft.com.' });
     if (limited(req, 'pw', 10, 15 * 60e3)) return json(res, 429, { error: 'Too many attempts. Wait 15 minutes and try again.' });
     const body = await readJson(req);
     if (!Auth.verifyPassword(String(body.current || ''), user.passwordHash)) return json(res, 400, { error: 'Your current password isn’t right.' });
@@ -308,7 +364,7 @@ async function route(req, res) {
     await store.setSetting('deptNames', names);
     return json(res, 200, names);
   }
-  if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(user), user: pub(user), storage: store.kind, email: !!process.env.SMTP_HOST });
+  if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(user), user: pub(user), storage: store.kind, email: !!process.env.SMTP_HOST, passwordLogin: PASSWORD_LOGIN, microsoftLogin: MS.enabled && !MS.problem, msAutoAdd: MS.autoAdd });
   if (p === '/admin' && !isAdmin(user)) return send(res, 302, '', { Location: '/?notice=admin-only' });
 
   if (p.startsWith('/api/admin/') && !isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });
@@ -321,8 +377,11 @@ async function route(req, res) {
     if (!name) return json(res, 400, { error: 'Enter the person’s name.', field: 'name' });
     if (!EMAIL_RE.test(email)) return json(res, 400, { error: 'Enter an email address like name@skylinewhitespace.com.', field: 'email' });
     if (!ROLES.includes(role)) return json(res, 400, { error: 'Choose Admin or Viewer.', field: 'role' });
-    const problem = Auth.passwordProblem(b2.password);
+    const needsPw = PASSWORD_LOGIN && !(MS.enabled && !b2.password);
+    const problem = needsPw ? Auth.passwordProblem(b2.password) : '';
     if (problem) return json(res, 400, { error: problem, field: 'password' });
+    if (!PASSWORD_LOGIN) b2.password = Auth.tempPassword() + Auth.tempPassword();
+    if (!b2.password) b2.password = Auth.tempPassword() + Auth.tempPassword();
     if (await store.getUserByEmail(email)) return json(res, 409, { error: 'Someone with that email already has an account.', field: 'email' });
     const u = await store.createUser({ email, name: name.slice(0, 80), role, passwordHash: Auth.hashPassword(b2.password) });
     return json(res, 201, pub(u));
@@ -341,6 +400,7 @@ async function route(req, res) {
         f.role = b2.role;
       }
       if ('password' in b2) {
+        if (!PASSWORD_LOGIN) return json(res, 400, { error: 'Passwords are managed by Microsoft.' });
         const problem = Auth.passwordProblem(b2.password);
         if (problem) return json(res, 400, { error: problem });
         f.passwordHash = Auth.hashPassword(b2.password); f.tokenVersion = (target.tokenVersion || 0) + 1;   // signs them out everywhere

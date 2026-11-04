@@ -175,9 +175,10 @@
     let list;
     try { list = await api('/api/admin/users'); } catch (e) { pane.innerHTML = `<div class="blank-state"><div>${esc(e.message)}</div></div>`; return; }
     const meId = me.user.id;
+    const msOn = !!me.microsoftLogin, pwOn = me.passwordLogin !== false;
     const admins = list.filter(u => u.role === 'admin').length;
     pane.innerHTML = `
-      <div class="uhead"><div><h1>Users</h1><div class="meta">${list.length} ${list.length === 1 ? 'person' : 'people'} · Admins can see submissions, manage users and rename folders. Viewers can use the hub, forms and documents, and see the carbon platform read-only.</div></div>
+      <div class="uhead"><div><h1>Users</h1><div class="meta">${list.length} ${list.length === 1 ? 'person' : 'people'} · Admins can see submissions, manage users and rename folders. Viewers can use the hub, forms and documents, and see the carbon platform read-only.${msOn ? (me.msAutoAdd ? ' Anyone in Skyline Whitespace’s Microsoft 365 can sign in with Microsoft and is added here as a Viewer.' : ' People sign in with their Microsoft 365 account once you’ve added them here.') : ''}</div></div>
         <button class="btn primary" type="button" id="addBtn">${icon('add')}Add user</button></div>
       <div id="unote">${note || ''}</div>
       <form class="addform" id="addForm" hidden novalidate>
@@ -186,7 +187,7 @@
           <div class="q"><label for="nuName">Name</label><input class="ctl" id="nuName" autocomplete="off" placeholder="e.g. Jo Bloggs"></div>
           <div class="q"><label for="nuEmail">Email</label><input class="ctl" id="nuEmail" type="email" autocomplete="off" placeholder="name@skylinewhitespace.com"></div>
           <fieldset class="q"><legend>Permission</legend><div class="seg"><label><input type="radio" name="nuRole" value="viewer" checked><span>Viewer</span></label><label><input type="radio" name="nuRole" value="admin"><span>Admin</span></label></div></fieldset>
-          <div class="q"><label for="nuPw">Temporary password</label><div class="pwrow"><input class="ctl" id="nuPw" autocomplete="off" spellcheck="false"><button class="btn subtle" type="button" id="nuGen" title="Make a new password">New</button></div></div>
+          ${pwOn ? `<div class="q"><label for="nuPw">${msOn ? 'Backup password (optional)' : 'Temporary password'}</label><div class="pwrow"><input class="ctl" id="nuPw" autocomplete="off" spellcheck="false"><button class="btn subtle" type="button" id="nuGen" title="Make a new password">New</button></div>${msOn ? '<div class="hint" style="margin-top:4px">Leave blank if they’ll only sign in with Microsoft.</div>' : ''}</div>` : ''}
         </div>
         <div id="aerr" role="alert"></div>
         <div class="cmdbar" style="gap:8px;margin-top:14px"><button class="btn primary" type="submit">Create account</button><button class="btn" type="button" id="addCancel">Cancel</button></div>
@@ -194,23 +195,24 @@
       <div class="utable" role="table" aria-label="Users">
         <div class="urow uhd" role="row"><span role="columnheader">Name</span><span role="columnheader">Permission</span><span role="columnheader">Last signed in</span><span role="columnheader"><span class="sr">Actions</span></span></div>
         ${list.map(u => `<div class="urow" role="row" data-id="${u.id}">
-          <span class="uname" role="cell"><span class="ava">${esc(initials(u.name))}</span><span><b>${esc(u.name)}${u.id === meId ? ' <em>(you)</em>' : ''}</b><small>${esc(u.email)}</small></span></span>
+          <span class="uname" role="cell"><span class="ava">${esc(initials(u.name))}</span><span><b>${esc(u.name)}${u.id === meId ? ' <em>(you)</em>' : ''}</b><small>${esc(u.email)}${u.microsoft ? ' · <span class="mstag">Microsoft</span>' : ''}</small></span></span>
           <span role="cell"><select class="ctl role" aria-label="Permission for ${esc(u.name)}"${u.role === 'admin' && admins === 1 ? ' title="There must be at least one admin"' : ''}><option value="admin"${u.role === 'admin' ? ' selected' : ''}>Admin</option><option value="viewer"${u.role === 'viewer' ? ' selected' : ''}>Viewer</option></select></span>
           <span role="cell" class="last">${when(u.lastLogin)}</span>
-          <span role="cell" class="uact"><button class="cmd reset" type="button">${icon('key')}Reset password</button>${u.id === meId ? '' : `<button class="cmd remove" type="button" style="color:var(--danger)">${icon('del')}Remove</button>`}</span>
+          <span role="cell" class="uact">${pwOn ? `<button class="cmd reset" type="button">${icon('key')}${msOn ? 'Backup password' : 'Reset password'}</button>` : ''}${u.id === meId ? '' : `<button class="cmd remove" type="button" style="color:var(--danger)">${icon('del')}Remove</button>`}</span>
           <div class="uslot"></div>
         </div>`).join('')}
       </div>`;
     const form = $('#addForm');
-    $('#addBtn').onclick = () => { form.hidden = false; $('#nuPw').value = tempPw(); $('#nuName').focus(); };
+    $('#addBtn').onclick = () => { form.hidden = false; if ($('#nuPw')) $('#nuPw').value = msOn ? '' : tempPw(); $('#nuName').focus(); };
     $('#addCancel').onclick = () => { form.hidden = true; $('#aerr').innerHTML = ''; };
-    $('#nuGen').onclick = () => { $('#nuPw').value = tempPw(); };
+    if ($('#nuGen')) $('#nuGen').onclick = () => { $('#nuPw').value = tempPw(); };
     form.onsubmit = async e => {
       e.preventDefault();
-      const body = { name: $('#nuName').value, email: $('#nuEmail').value, role: form.querySelector('[name=nuRole]:checked').value, password: $('#nuPw').value };
+      const body = { name: $('#nuName').value, email: $('#nuEmail').value, role: form.querySelector('[name=nuRole]:checked').value, password: $('#nuPw') ? $('#nuPw').value : '' };
       try {
         const u = await api('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        renderUsers(credsNote(u, body.password, 'Account created'));
+        renderUsers(body.password ? credsNote(u, body.password, 'Account created')
+          : `<div class="bar-msg ok">${icon('check')}<div>Added <b>${esc(u.name)}</b>. They can sign in at <code>${esc(location.origin)}/login</code> with <b>Sign in with Microsoft</b>, using ${esc(u.email)}.</div></div>`);
       } catch (x) { $('#aerr').innerHTML = `<div class="bar-msg error">${icon('err')}<div>${esc(x.message)}</div></div>`; }
     };
     pane.querySelectorAll('.urow[data-id]').forEach(row => {
@@ -222,7 +224,7 @@
           renderUsers(`<div class="bar-msg ok">${icon('check')}<div>${esc(u.name)} is now ${e.target.value === 'admin' ? 'an Admin' : 'a Viewer'}.</div></div>`);
         } catch (x) { e.target.value = u.role; fail(x.message); }
       };
-      row.querySelector('.reset').onclick = () => {
+      if (row.querySelector('.reset')) row.querySelector('.reset').onclick = () => {
         const pw = tempPw();
         slot.innerHTML = `<div class="confirm" style="background:var(--pane-2)"><span style="flex:1">Give ${esc(u.name)} a new temporary password? They’ll be signed out everywhere.</span><button class="btn" type="button" data-no>Cancel</button><button class="btn primary" type="button" data-yes>Reset password</button></div>`;
         slot.querySelector('[data-no]').onclick = () => { slot.innerHTML = ''; };

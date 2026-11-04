@@ -300,7 +300,8 @@
     const item = (ic, label, fn) => h('button', { class: 'mi', type: 'button', role: 'menuitem', html: icon(ic) + `<span>${esc(label)}</span>`, onclick: () => { closeMenu(); fn(); } });
     menu = h('div', { class: 'ctxmenu acct', role: 'menu', 'aria-label': 'Your account' },
       h('div', { class: 'who', html: `<span class="avatar big" aria-hidden="true">${esc(initials(ME.name))}</span><span><b>${esc(ME.name)}</b><small>${esc(ME.email)}</small><em>${ME.role === 'admin' ? 'Admin' : 'Viewer'}</em></span>` }),
-      item('key', 'Change password', changePassword),
+      ME.passwordLogin !== false ? item('key', 'Change password', changePassword) : null,
+      ME.microsoftLogin ? item('open', 'Microsoft security settings', () => { window.open('https://mysignins.microsoft.com/security-info', '_blank', 'noopener'); }) : null,
       isAdminMe() ? item('people', 'Manage users', () => { location.href = '/admin#users'; }) : null,
       isAdminMe() ? item('inbox', 'Submissions', () => { location.href = '/admin'; }) : null,
       h('div', { class: 'sep', role: 'separator' }),
@@ -357,7 +358,7 @@
     meBtn.textContent = initials(ME.name); meBtn.hidden = false; meBtn.title = `${ME.name} (${ME.role === 'admin' ? 'Admin' : 'Viewer'})`;
     $('#inboxLink').hidden = !isAdminMe();
     const qs = new URLSearchParams(location.search);
-    if (qs.get('account')) changePassword();
+    if (qs.get('account') && ME.passwordLogin !== false) changePassword();
     if (qs.get('notice') === 'admin-only') toast(`${icon('info')}<span>That page is for admins. Ask an admin if you need access.</span>`);
     if (qs.toString()) history.replaceState(null, '', location.pathname + location.hash);
     renderFolders(activeFolder);

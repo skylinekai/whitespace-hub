@@ -15,14 +15,22 @@
     <img class="logo" src="/logo-black.png" alt="Whitespace, part of Creaplan Group" width="240" height="61">
     <p class="lead">Sign in to Whitespace Hub.</p>
     <div class="msg" id="msg" role="alert" hidden></div>
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" autocomplete="username" inputmode="email" required autofocus>
-    <label for="password">Password</label>
-    <div class="pw">
-      <input id="password" name="password" type="password" autocomplete="current-password" required>
-      <button type="button" id="show" aria-label="Show password" aria-pressed="false">Show</button>
+    <a class="ms" id="ms" href="/auth/microsoft/start" hidden>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2a3 3 0 0 0-3 3v1H6a2 2 0 0 0-2 2v8c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-1V5a3 3 0 0 0-3-3Zm2 4H8V5a2 2 0 1 1 4 0v1Zm-2 4.5a1.5 1.5 0 0 1 .5 2.9V15a.5.5 0 0 1-1 0v-1.6a1.5 1.5 0 0 1 .5-2.9Z"/></svg>
+      <span>Sign in with Microsoft</span>
+    </a>
+    <p class="ms-note" id="msNote" hidden>Use your Skyline Whitespace Microsoft 365 account. Microsoft may ask you to confirm it’s you with the Authenticator app, Face ID or your fingerprint.</p>
+    <button type="button" class="alt" id="alt" hidden aria-expanded="false" aria-controls="pwBox">Sign in with email and password instead</button>
+    <div id="pwBox">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" inputmode="email">
+      <label for="password">Password</label>
+      <div class="pw">
+        <input id="password" name="password" type="password" autocomplete="current-password">
+        <button type="button" id="show" aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <button class="go" id="go" type="submit">Sign in</button>
     </div>
-    <button class="go" id="go" type="submit">Sign in</button>
     <p class="help">Forgotten your password? Ask an admin to reset it.</p>
   </form>
 </main>

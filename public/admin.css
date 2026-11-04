@@ -112,3 +112,5 @@
 }
 
 .appbar .bar-end { margin-left: auto; }
+
+.mstag { color: var(--brand-fg); font-weight: 600; }

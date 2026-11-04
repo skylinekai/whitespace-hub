@@ -34,3 +34,14 @@ input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rg
 @keyframes s { to { transform: rotate(360deg); } }
 @media (max-width: 480px) { .card { padding: 32px 22px 24px; border: 0; box-shadow: none; } .foot { position: static; text-align: center; padding-bottom: 12px; } }
 @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }
+
+.ms { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 52px; border-radius: 999px; background: var(--blue); color: #fff; text-decoration: none; font-size: 17px; font-weight: 600; }
+.ms:hover { background: var(--blue-hover); } .ms:active { background: var(--blue-press); }
+.ms svg { width: 20px; height: 20px; fill: currentColor; }
+.ms:focus-visible, .alt:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ms-note { text-align: center; color: var(--muted); font-size: 13px; line-height: 19px; margin: 12px 0 0; }
+.alt { display: block; margin: 20px auto 0; border: 0; background: none; color: var(--blue); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 4px; }
+.alt:hover { text-decoration: underline; }
+.card.has-ms #pwBox { margin-top: 4px; padding-top: 4px; }
+.card.has-ms #pwBox .go { background: #fff; color: var(--blue); border: 1px solid var(--blue); height: 48px; font-size: 16px; }
+.card.has-ms #pwBox .go:hover { background: rgba(15,108,189,.06); }
