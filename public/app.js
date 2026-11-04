@@ -108,10 +108,11 @@
   fitSearch(); addEventListener('resize', fitSearch);
   const counts = d => ITEMS.filter(x => x.dept === d && x.type !== 'page').length;
 
+  const artFor = d => d.image ? `<img class="art photo" src="${esc(d.image)}" alt="" loading="lazy">` : DeptArt.scene(d);
   let activeFolder = 'home';
   function renderFolders(active) {
     activeFolder = active;
-    const f = (href, label, ic, n, cur, color, dept) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}${dept ? ` data-dept="${dept}"${isAdminMe() ? ` title="${esc(label)} – right-click for options"` : ''}` : ''}>${color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}${dept && EDIT ? `<button class="fmore" type="button" data-act="dept-menu" data-dept="${dept}" aria-label="Options for ${esc(label)}">${icon('more')}</button>` : ''}</a>`;
+    const f = (href, label, ic, n, cur, color, dept) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}${dept ? ` data-dept="${dept}"${isAdminMe() ? ` title="${esc(label)} – right-click for options"` : ''}` : ''}>${dept ? DeptArt.badge(byDept[dept] || { name: label, color }, 20) : color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}${dept && EDIT ? `<button class="fmore" type="button" data-act="dept-menu" data-dept="${dept}" aria-label="Options for ${esc(label)}">${icon('more')}</button>` : ''}</a>`;
     const apps = ITEMS.filter(x => x.type === 'app');
     folders.innerHTML =
       f('#home', 'Dashboard', 'home', '', active === 'home') +
@@ -264,7 +265,7 @@
       <h2 class="section">Departments</h2>
       <div class="depts">${HOME.map(d => { const c = { form: 0, doc: 0, link: 0 }; ITEMS.filter(x => x.dept === d && c[x.type] != null).forEach(x => c[x.type]++);
         const parts = [c.form && `${c.form} form${c.form > 1 ? 's' : ''}`, c.doc && `${c.doc} document${c.doc > 1 ? 's' : ''}`, c.link && `${c.link} link${c.link > 1 ? 's' : ''}`].filter(Boolean);
-        return `<a class="dept" href="#d/${d.id}"><span class="cat" style="background:${d.color}">${icon('folder')}</span><span><b>${esc(d.name)}</b><small>${parts.join(' · ')}</small></span></a>`; }).join('')}</div>
+        return `<a class="dept" href="#d/${d.id}" style="--dc:${d.color}"><span class="dart">${artFor(d)}</span><span class="dtxt">${DeptArt.badge(d, 28)}<span><b>${esc(d.name)}</b><small>${parts.join(' · ') || 'Empty'}</small></span></span></a>`; }).join('')}</div>
     </div>`;
   }
   function viewFav() {
@@ -294,8 +295,9 @@
     }).join('');
     return `<div class="pane-inner" data-dept="${d.id}">
       <div class="crumbs"><a href="#home">Home</a>${icon('chev', 'i16')}<span>${esc(d.name)}</span></div>
-      <div class="dhead"><h1 class="title" style="display:flex;align-items:center;gap:10px"><span class="cat" style="background:${d.color};width:14px;height:14px"></span>${esc(d.name)}</h1>
-        ${EDIT ? `<span class="etools"><button class="eb" type="button" data-act="dept-rename" data-dept="${d.id}">${icon('rename')}<span>Rename</span></button><button class="eb" type="button" data-act="dept-color" data-dept="${d.id}">${icon('palette')}<span>Colour</span></button><button class="eb danger" type="button" data-act="dept-del" data-dept="${d.id}">${icon('del')}<span>Delete folder</span></button></span>` : ''}</div>
+      <div class="dbanner" style="--dc:${d.color}">${d.image ? artFor(d) : DeptArt.banner(d)}<div class="dbshade"></div><h1 class="dbtitle">${esc(d.name)}</h1></div>
+      <div class="dhead">
+        ${EDIT ? `<span class="etools"><button class="eb" type="button" data-act="dept-rename" data-dept="${d.id}">${icon('rename')}<span>Rename</span></button><button class="eb" type="button" data-act="dept-color" data-dept="${d.id}">${icon('palette')}<span>Picture &amp; colour</span></button><button class="eb danger" type="button" data-act="dept-del" data-dept="${d.id}">${icon('del')}<span>Delete folder</span></button></span>` : ''}</div>
       ${d.sections.length ? sections : `<div class="empty">This folder is empty.${EDIT ? '' : ''}</div>`}
       ${EDIT ? `<button class="addrow big" type="button" data-act="sec-add" data-dept="${d.id}">${icon('add')}Add a section</button>` : ''}
     </div>`;

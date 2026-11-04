@@ -80,14 +80,52 @@ window.initHubEditor = function (ctx) {
     const colors = colorPicker(d ? d.color : COLORS[Math.floor(Math.random() * COLORS.length)]);
     const where = h('div', { class: 'seg' },
       ...[['main', 'Departments'], ['more', 'More']].map(([v, l]) => h('label', {}, h('input', { type: 'radio', name: 'fdGroup', value: v, checked: (d ? d.group : group || 'main') === v }), h('span', {}, l))));
-    const body = h('div', {}, field('Folder name', name), h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Colour'), colors), h('fieldset', { class: 'q dq' }, h('legend', {}, 'Show under'), where));
-    const p = dialog(d ? 'Edit folder' : 'New folder', body, { submit: d ? 'Save' : 'Create folder' });
+    // picture: an icon illustration (chosen automatically from the name unless picked) or an uploaded photo
+    let icon_ = d && d.icon ? d.icon : '', image = d && d.image ? d.image : '';
+    const prev = h('div', { class: 'artprev' });
+    const cur = () => ({ name: name.value || 'Folder', color: colors.value(), icon: icon_ || undefined, image: image || undefined });
+    const pick = h('div', { class: 'iconpick', role: 'radiogroup', 'aria-label': 'Icon' },
+      h('button', { type: 'button', role: 'radio', 'data-k': '', title: 'Choose from the folder name', 'aria-label': 'Automatic', html: '<span style="font-size:11px;font-weight:600">Auto</span>' }),
+      ...DeptArt.ICONS.map(g => h('button', { type: 'button', role: 'radio', 'data-k': g.key, title: g.label, 'aria-label': g.label, html: DeptArt.glyph(g.key) })));
+    const fileIn = h('input', { type: 'file', id: 'fdImg', accept: 'image/jpeg,image/png,image/webp' });
+    const upBtn = h('span', { class: 'btn' });
+    const rmBtn = h('button', { class: 'btn subtle dangertext', type: 'button', onclick: () => { image = ''; paint(); } }, 'Use the illustration instead');
+    const drop = h('label', { class: 'filebox', for: 'fdImg', style: 'margin-top:10px' }, upBtn, h('span', { class: 'hint2' }, 'Or use your own photo. Wide photos work best.'), fileIn);
+    function paint(busy) {
+      prev.innerHTML = busy ? '<div class="dload"><span class="spinner"></span>Uploading…</div>' : image ? `<img class="art photo" src="${esc(image)}" alt="">` : DeptArt.scene(cur());
+      prev.style.background = colors.value();
+      pick.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', !image && b.dataset.k === icon_));
+      pick.style.opacity = image ? '.5' : '';
+      upBtn.innerHTML = icon('upload') + (image ? 'Change photo' : 'Upload a photo'); rmBtn.hidden = !image;
+    }
+    pick.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; icon_ = b.dataset.k; image = ''; paint(); });
+    name.addEventListener('input', () => { if (!icon_ && !image) paint(); });
+    colors.addEventListener('click', () => setTimeout(() => paint())); colors.addEventListener('input', () => paint());
+    async function upload(f) {
+      if (!f) return;
+      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return body._box.showError('Choose a JPG, PNG or WebP photo.');
+      paint(true);
+      try { const small = await shrinkImage(f); const fd = new FormData(); fd.append('file', small, small.name); image = (await api('/api/admin/files', { method: 'POST', form: fd })).url; }
+      catch (e) { body._box.showError(e.message); }
+      paint();
+    }
+    fileIn.addEventListener('change', () => upload(fileIn.files[0]));
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); upload(e.dataTransfer.files[0]); });
+    const body = h('div', {}, field('Folder name', name), h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Colour'), colors),
+      h('div', { class: 'q dq' }, h('div', { class: 'qlabel' }, 'Picture'), pick, drop, rmBtn, prev),
+      h('fieldset', { class: 'q dq' }, h('legend', {}, 'Show under'), where));
+    paint();
+    const p = dialog(d ? 'Edit folder' : 'New folder', body, { submit: d ? 'Save' : 'Create folder', wide: true });
     body._box.onsave = async () => {
       const n = name.value.trim(); if (!n) throw new Error('Give the folder a name.');
+      if (prev.querySelector('.spinner')) throw new Error('Wait for the photo to finish uploading.');
       const g = body.querySelector('[name=fdGroup]:checked').value, newId = nid('d');
+      const apply = x => { x.name = n; x.color = colors.value(); x.group = g; if (icon_) x.icon = icon_; else delete x.icon; if (image) x.image = image; else delete x.image; };
       const done = await save(doc => {
-        if (d) { const x = findDept(doc, d.id); x.name = n; x.color = colors.value(); x.group = g; }
-        else doc.departments.push({ id: newId, name: n, color: colors.value(), group: g, sections: [{ id: nid('s'), title: '', items: [] }] });
+        if (d) apply(findDept(doc, d.id));
+        else { const x = { id: newId, sections: [{ id: nid('s'), title: '', items: [] }] }; apply(x); doc.departments.push(x); }
       }, d ? 'Folder saved.' : `Created “${n}”.`);
       if (done && !d) location.hash = '#d/' + newId;
       return done || undefined;
@@ -119,7 +157,7 @@ window.initHubEditor = function (ctx) {
     });
     const m = h('div', { class: 'ctxmenu', role: 'menu', 'aria-label': d.name + ' options' },
       item('folder', 'Open', () => { location.hash = '#d/' + id; }),
-      item('rename', 'Rename or change colour…', () => folderDialog(id)),
+      item('rename', 'Rename, picture or colour…', () => folderDialog(id)),
       item('up', 'Move up', () => shift(-1), gi === 0),
       item('down', 'Move down', () => shift(1), gi === sameGroup.length - 1),
       item('folder', d.group === 'more' ? 'Move to Departments' : 'Move to More', () => save(doc => { findDept(doc, id).group = d.group === 'more' ? 'main' : 'more'; })),

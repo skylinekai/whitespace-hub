@@ -114,6 +114,7 @@ Only admins can remove users. Nobody can remove their own account, and the last 
 
 Select **Edit** in the top bar. Everything saves straight away and shows for everyone. Select **Done** when you're finished.
 
+- **Folder pictures:** every folder has an illustration in its colour, picked automatically from its name (Finance gets a calculator, Health & Safety a hard hat, and so on). In **Edit**, open a folder's **⋯** menu and choose **Rename, picture or colour** to pick a different icon or upload your own photo.
 - **Folders:** **New folder** in the folder pane, or the **⋯** next to a folder (or right-click it) to rename it, change its colour, move it up or down, move it between Departments and More, or delete it.
 - **Sections:** rename, reorder, delete, or **Add a section** at the bottom of a folder.
 - **Items:** **Add to …** under any section. An item can be a form (an existing one or a new one), a document (upload a file up to 50 MB, or link to SharePoint or OneDrive), a link, a note, or a shortcut to another folder. Each item has edit, move and delete buttons. Ticking **Show as a quick action** puts a form on the dashboard.
