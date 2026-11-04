@@ -8,6 +8,7 @@ const Engine = require('./public/engine.js');
 const makeStore = require('./lib/store');
 const { notify, taskAssigned } = require('./lib/mail');
 const { makeBoard, EMOJIS } = require('./lib/board');
+const { makeTodo } = require('./lib/mstodo');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -30,6 +31,7 @@ async function initContent() {
 const formIndex = () => Object.values(byId).map(f => ({ id: f.id, name: f.name })).sort((a, b) => a.name.localeCompare(b.name));
 const store = makeStore();
 const board = makeBoard(store);
+let todo = null;   // set up once the session secret is known
 const MAX_FILE = 25 * 1024 * 1024, MAX_BODY = 200 * 1024 * 1024;
 
 // ---------- helpers ----------
@@ -65,6 +67,7 @@ async function initAuth() {
     if (!SECRET) { SECRET = crypto.randomBytes(32).toString('hex'); await store.setSetting('sessionSecret', SECRET); }
   }
   sessions = Auth.makeSessions(SECRET);
+  todo = makeTodo(store, MS, () => SECRET);
   if (MS.problem) console.error('[microsoft] ' + MS.problem);
   console.log(`[auth] Sign in with Microsoft: ${MS.enabled && !MS.problem ? 'on' : 'off'} · email and password: ${PASSWORD_LOGIN ? 'on' : 'off'}`);
   const initialPassword = () => {
@@ -470,6 +473,17 @@ async function route(req, res) {
     if (!MS.enabled) return back('ms-off');
     const pending = readBlob(readCookie(req, 'wsh_ms'));
     let who;
+    if (pending && pending.k === 'todo') {   // connecting Microsoft To Do for someone already signed in
+      const me = await currentUser(req);
+      const done = code => send(res, 302, '', { Location: `/?todo=${code}#home`, 'Set-Cookie': clearMs });
+      if (!me) return back('ms-expired');
+      try { who = await MS.finish(req, url.searchParams, pending); }
+      catch (e) { console.error('[mstodo] connect failed:', e.code, e.message); return done(e.code === 'denied' ? 'denied' : e.code === 'todo-scope' ? 'consent' : 'failed'); }
+      if (who.email !== me.email && who.oid !== me.msOid) return done('wrong-account');
+      await todo.saveTokens(me.id, who.tokens, who.email);
+      console.log(`[mstodo] ${me.email} connected Microsoft To Do.`);
+      return done('connected');
+    }
     try { who = await MS.finish(req, url.searchParams, pending); }
     catch (e) { console.error('[microsoft] sign-in failed:', e.code, e.message); return back(e.code === 'denied' ? 'ms-denied' : e.code === 'tenant' ? 'ms-tenant' : e.code === 'expired' || e.code === 'state' ? 'ms-expired' : 'ms-failed', pending && pending.next); }
     let u = (await store.getUserByMsOid(who.oid)) || (await store.getUserByEmail(who.email));
@@ -536,6 +550,47 @@ async function route(req, res) {
     visible.sort((a, b) => (b.pinned - a.pinned) || b.at.localeCompare(a.at));
     return json(res, 200, { user: pub(user), tasks, news: visible.slice(0, 5), newsTotal: feed.news.length, hiddenCount: feed.news.length - visible.length, topics: feed.topics, emojis: EMOJIS }, { 'Cache-Control': 'no-cache' });
   }
+  // ----- Microsoft To Do (each person's own tasks) -----
+  if (p === '/auth/microsoft/todo' && m === 'GET') {
+    if (!MS.todo || MS.problem) return send(res, 302, '', { Location: '/?todo=off#home' });
+    const { url: to, pending } = MS.start(req, '/', { todo: true, loginHint: user.email });
+    return send(res, 302, '', { Location: to, 'Set-Cookie': `wsh_ms=${encodeURIComponent(signBlob(pending))}; Path=/auth/microsoft; HttpOnly; SameSite=Lax; Max-Age=600${isSecure(req) ? '; Secure' : ''}` });
+  }
+  if (p === '/api/mstodo') {
+    if (!MS.todo || MS.problem) return json(res, 200, { available: false });
+    if (m === 'DELETE') { await todo.disconnect(user.id); return json(res, 200, { available: true, connected: false }); }
+    const st = await todo.status(user.id);
+    if (!st.connected) return json(res, 200, { available: true, connected: false });
+    try { return json(res, 200, Object.assign({ available: true, connected: true, email: st.email }, await todo.tasks(user.id, url.searchParams.has('fresh'))), { 'Cache-Control': 'no-cache' }); }
+    catch (e) {
+      if (e.code === 'reconnect') return json(res, 200, { available: true, connected: false, expired: true });
+      console.error('[mstodo] load failed:', e.message);
+      return json(res, 200, { available: true, connected: true, error: 'Couldn’t reach Microsoft To Do just now. Try again in a minute.' });
+    }
+  }
+  if ((p === '/api/mstodo/done' || p === '/api/mstodo/add') && m === 'POST') {
+    if (!MS.todo || MS.problem) return json(res, 404, { error: 'Microsoft To Do isn’t set up.' });
+    const b = await readJson(req);
+    try {
+      if (p === '/api/mstodo/done') {
+        if (!b.listId || !b.taskId) return json(res, 400, { error: 'Missing task.' });
+        await todo.setDone(user.id, String(b.listId), String(b.taskId), b.done !== false); return json(res, 200, { ok: true });
+      }
+      const title = String(b.title || '').trim().slice(0, 255);
+      if (!title) return json(res, 400, { error: 'Write the task.' });
+      let listId = String(b.listId || '');
+      if (!listId) { const d = await todo.tasks(user.id); listId = (d.lists.find(l => l.isDefault) || d.lists[0] || {}).id; }
+      if (!listId) return json(res, 400, { error: 'You don’t have a To Do list yet. Open Microsoft To Do once to create one.' });
+      const due = /^\d{4}-\d{2}-\d{2}$/.test(b.due || '') ? b.due : '';
+      const t = await todo.add(user.id, listId, title, due);
+      return json(res, 201, { id: t.id, listId });
+    } catch (e) {
+      if (e.code === 'reconnect') return json(res, 409, { error: 'Microsoft needs you to connect To Do again.', reconnect: true });
+      console.error('[mstodo] change failed:', e.message);
+      return json(res, 502, { error: 'Microsoft To Do didn’t save that. Try again.' });
+    }
+  }
+
   // ----- the announcements board (everyone) -----
   if (p === '/api/news' && m === 'GET') {
     const drafts = url.searchParams.get('drafts') === '1' && isAdmin(user);

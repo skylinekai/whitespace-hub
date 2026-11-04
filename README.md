@@ -76,6 +76,17 @@ Save and let it redeploy. The login page now shows **Sign in with Microsoft**. Y
 
 **If it doesn't work**, check the service's **Logs** for lines starting with `[microsoft]`. Common causes: the redirect URI in Entra doesn't exactly match `PUBLIC_URL` + `/auth/microsoft/callback`, the client secret has expired, or `MS_TENANT_ID` was set to a domain name instead of the tenant ID.
 
+### Microsoft To Do on the dashboard
+
+Once Sign in with Microsoft is set up, everyone sees a **Connect Microsoft To Do** button under **My tasks**. After they connect, their To Do tasks show on the dashboard. They can tick tasks off or add new ones there, and everything syncs with To Do on their phone and in Outlook. Flagged emails aren't shown.
+
+One-time setup in Entra ID (the same app registration as sign-in):
+1. Open **App registrations** → **Whitespace Hub** → **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**.
+2. Tick **Tasks.ReadWrite** and **offline_access**, then **Add permissions**.
+3. Select **Grant admin consent for Skyline Whitespace** so staff aren't asked to approve it themselves.
+
+There's nothing to change in Render. Each person's connection is stored encrypted, and **Disconnect** removes it. Set `MS_TODO=off` to hide the feature. Due dates use UK time; set `TODO_TIMEZONE` to change that.
+
 ## If Carbon says it isn't available
 
 The page now says why. Check the **Logs** tab of the service in Render for lines starting with `[carbon]`.

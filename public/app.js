@@ -53,6 +53,7 @@
     smile: 'M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm-3.2 8.6a.5.5 0 0 1 .7.1 3 3 0 0 0 5 0 .5.5 0 0 1 .8.6 4 4 0 0 1-6.6 0 .5.5 0 0 1 .1-.7ZM7.5 7.3a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z',
     eye: 'M10 6c3.2 0 6 2 7.4 4-1.4 2-4.2 4-7.4 4s-6-2-7.4-4C4 8 6.8 6 10 6Zm0-1C6.3 5 3.1 7.4 1.6 9.8a.5.5 0 0 0 0 .4C3.1 12.6 6.3 15 10 15s6.9-2.4 8.4-4.8a.5.5 0 0 0 0-.4C16.9 7.4 13.7 5 10 5Zm0 2.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z',
     eyeoff: 'M2.9 2.1a.5.5 0 0 0-.8.8l3 3C3.6 7 2.4 8.4 1.6 9.8a.5.5 0 0 0 0 .4C3.1 12.6 6.3 15 10 15c1.5 0 2.9-.4 4.1-1l3 3a.5.5 0 0 0 .8-.8l-15-15ZM13.4 13.3c-1 .5-2.2.7-3.4.7-3.2 0-6-2-7.4-4 .8-1.1 1.9-2.2 3.2-3l1.8 1.8a2.5 2.5 0 0 0 3.4 3.4l2.4 1.1Zm-5.4-4.2 2.9 2.9A1.5 1.5 0 0 1 8 9.1ZM10 6c3.2 0 6 2 7.4 4-.5.7-1 1.3-1.7 1.9l.7.7c.8-.7 1.5-1.5 2-2.4a.5.5 0 0 0 0-.4C16.9 7.4 13.7 5 10 5c-1 0-2 .2-2.9.5l.8.8C8.6 6.1 9.3 6 10 6Z',
+    msTodo: 'M5.5 3h9A2.5 2.5 0 0 1 17 5.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5v-9A2.5 2.5 0 0 1 5.5 3Zm0 1C4.7 4 4 4.7 4 5.5v9c0 .8.7 1.5 1.5 1.5h9c.8 0 1.5-.7 1.5-1.5v-9c0-.8-.7-1.5-1.5-1.5h-9Zm7.9 3.1a.6.6 0 0 1 0 .8l-4.2 4.2a.6.6 0 0 1-.8 0L6.6 10.3a.6.6 0 0 1 .8-.8L8.8 11l3.8-3.9a.6.6 0 0 1 .8 0Z',
     copy: 'M8 2a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8ZM7 4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4ZM4 6a2 2 0 0 1 1-1.7V14.5A2.5 2.5 0 0 0 7.5 17h6.2a2 2 0 0 1-1.7 1H7.5A3.5 3.5 0 0 1 4 14.5V6Z',
     rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
     undo: 'M4.5 3a.5.5 0 0 1 .5.5v3.3A7 7 0 1 1 3 10.5a.5.5 0 0 1 1 0 6 6 0 1 0 1.8-4.3H8.5a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5v-4c0-.3.2-.5.5-.5Z',
@@ -194,15 +195,79 @@
       ${isAdminMe() ? `<span class="etools"><button class="eb icon" type="button" data-act="task-edit" data-task="${t.id}" title="Edit task" aria-label="Edit task">${icon('rename')}</button><button class="eb icon danger" type="button" data-act="task-del" data-task="${t.id}" title="Delete task" aria-label="Delete task">${icon('del')}</button></span>` : ''}
     </li>`;
   }
+  // ---------- Microsoft To Do ----------
+  let TODO = null, todoAll = false;
+  async function loadTodo(fresh) {
+    try { const r = await fetch('/api/mstodo' + (fresh ? '?fresh=1' : '')); if (r.ok) TODO = await r.json(); } catch { TODO = { available: true, connected: true, error: 'Couldn’t reach Microsoft To Do. Check your connection.' }; }
+    paintDash();
+  }
+  function todoHtml() {
+    if (!TODO) return `<div class="todo"><div class="todohead">${icon('msTodo', 'i todoic')}<b>Microsoft To Do</b></div><div class="dload small"><span class="spinner"></span>Loading your To Do tasks…</div></div>`;
+    if (!TODO.available) return '';
+    const head = extra => `<div class="todohead">${icon('msTodo', 'i todoic')}<b>Microsoft To Do</b>${extra || ''}</div>`;
+    if (!TODO.connected) return `<div class="todo">${head()}<div class="todoconnect"><p>${TODO.expired ? 'Your connection to Microsoft To Do has expired.' : 'See your Microsoft To Do tasks here, tick them off and add new ones. Changes sync with To Do on your phone and in Outlook.'}</p>
+      <a class="btn" href="/auth/microsoft/todo">${TODO.expired ? 'Connect again' : 'Connect Microsoft To Do'}</a></div></div>`;
+    const tools = `<a class="btn subtle small" href="https://to-do.office.com/tasks/" target="_blank" rel="noopener">Open To Do</a><button class="eb icon" type="button" data-todo="refresh" title="Refresh" aria-label="Refresh To Do tasks">${icon('undo')}</button>`;
+    if (TODO.error) return `<div class="todo">${head(tools)}<div class="bar-msg error" style="margin:6px 8px">${icon('err')}<div>${esc(TODO.error)}</div></div></div>`;
+    const ts = TODO.tasks.slice().sort((x, y) => (x.due || '9999').localeCompare(y.due || '9999') || (y.important - x.important) || x.title.localeCompare(y.title));
+    const show = todoAll ? ts : ts.slice(0, 12);
+    const many = TODO.lists.length > 1;
+    const opts = TODO.lists.map(l => `<option value="${esc(l.id)}"${l.isDefault ? ' selected' : ''}>${esc(l.name)}</option>`).join('');
+    return `<div class="todo">${head(tools)}
+      <form class="todoadd" id="todoAdd"><input class="ctl" name="title" maxlength="255" placeholder="Add a task to To Do" aria-label="Add a task to Microsoft To Do" autocomplete="off">
+        <input class="ctl" type="date" name="due" aria-label="Due date (optional)">${many ? `<select class="ctl" name="list" aria-label="List">${opts}</select>` : ''}<button class="btn" type="submit">Add</button></form>
+      ${ts.length ? `<ul class="tasks">${show.map(t => `<li class="task" data-todo-id="${esc(t.id)}" data-list="${esc(t.listId)}">
+        <button class="tick" type="button" data-todo="done" role="checkbox" aria-checked="false" aria-label="Mark as done: ${esc(t.title)}">${icon('tick')}</button>
+        <div class="tbody"><b>${t.important ? `<span class="imp" title="Important">${icon('starOn', 'i16')}</span>` : ''}${esc(t.title)}</b>
+          <div class="tmeta">${dueInfo({ due: t.due, done: false })}${many ? `<span>${esc(t.list)}</span>` : ''}</div></div></li>`).join('')}</ul>
+        ${ts.length > show.length ? `<button class="morelink" type="button" data-todo="all">Show all ${ts.length}</button>` : ''}`
+        : `<div class="dempty small"><b>Nothing to do in To Do</b></div>`}
+      <div class="todofoot">Connected as ${esc(TODO.email || '')} · <button type="button" data-todo="disconnect">Disconnect</button></div></div>`;
+  }
+  async function todoAct(b) {
+    const a = b.dataset.todo;
+    if (a === 'refresh') { TODO = null; paintDash(); return loadTodo(true); }
+    if (a === 'all') { todoAll = true; return paintDash(); }
+    if (a === 'disconnect') { await fetch('/api/mstodo', { method: 'DELETE' }); toast(`${icon('check')}<span>Microsoft To Do disconnected.</span>`, 'ok'); return loadTodo(); }
+    if (a === 'done') {
+      const li = b.closest('[data-todo-id]'), id = li.dataset.todoId, listId = li.dataset.list, t = TODO.tasks.find(x => x.id === id);
+      li.classList.add('done'); b.setAttribute('aria-checked', 'true');
+      try {
+        const r = await fetch('/api/mstodo/done', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ listId, taskId: id, done: true }) });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) throw Object.assign(new Error(out.error || 'That didn’t save.'), out);
+        TODO.tasks = TODO.tasks.filter(x => x.id !== id);
+        setTimeout(paintDash, 450);
+        toast(`${icon('check')}<span>Done in To Do: ${esc(t ? t.title : '')}</span><button class="btn subtle small" type="button" id="todoUndo">Undo</button>`, 'ok');
+        const u = $('#todoUndo'); if (u) u.onclick = async () => { u.disabled = true; await fetch('/api/mstodo/done', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ listId, taskId: id, done: false }) }); loadTodo(true); };
+      } catch (e) { li.classList.remove('done'); toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); if (e.reconnect) loadTodo(); }
+    }
+  }
+  pane.addEventListener('submit', async e => {
+    if (e.target.id !== 'todoAdd') return;
+    e.preventDefault();
+    const f = e.target, title = f.title.value.trim(); if (!title) return f.title.focus();
+    const btn = f.querySelector('button'); btn.disabled = true;
+    try {
+      const r = await fetch('/api/mstodo/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, due: f.due.value, listId: f.list ? f.list.value : '' }) });
+      const out = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(out.error || 'That didn’t save.');
+      toast(`${icon('check')}<span>Added to To Do: ${esc(title)}</span>`, 'ok');
+      await loadTodo(true); const nf = $('#todoAdd'); if (nf) nf.title.focus();
+    } catch (x) { toast(`${icon('err')}<span>${esc(x.message)}</span>`, 'error'); btn.disabled = false; }
+  });
+
   function tasksHtml() {
     if (!DASH) return '<div class="dload"><span class="spinner"></span>Loading…</div>';
     const all = taskTab === 'all' && ALLTASKS;
     const list = all ? ALLTASKS : DASH.tasks;
     const open = list.filter(t => !t.done).sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
     const done = list.filter(t => t.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '')).slice(0, all ? 30 : 10);
-    if (!list.length) return `<div class="dempty">${icon('tick', 'i big')}<b>${all ? 'No tasks yet' : 'You’re all caught up'}</b><span>${all ? 'Tasks you assign to people show here.' : 'Tasks assigned to you will show here.'}</span></div>`;
-    return `${open.length ? `<ul class="tasks">${open.map(t => taskRow(t, all)).join('')}</ul>` : `<div class="dempty small">${icon('tick', 'i big')}<b>Nothing left to do</b></div>`}
-      ${done.length ? `<details class="donebox"><summary>Done (${list.filter(t => t.done).length})</summary><ul class="tasks">${done.map(t => taskRow(t, all)).join('')}</ul></details>` : ''}`;
+    const todoPart = all ? '' : todoHtml();
+    const todoOn = !all && TODO && TODO.connected && !TODO.error;
+    if (!list.length) return (todoOn ? '' : `<div class="dempty${todoPart ? ' small' : ''}">${icon('tick', 'i big')}<b>${all ? 'No tasks yet' : 'You’re all caught up'}</b><span>${all ? 'Tasks you assign to people show here.' : 'Tasks assigned to you in the hub will show here.'}</span></div>`) + todoPart;
+    return `${!all && todoPart ? '<div class="todohead hubhead"><b>From the hub</b></div>' : ''}${open.length ? `<ul class="tasks">${open.map(t => taskRow(t, all)).join('')}</ul>` : `<div class="dempty small">${icon('tick', 'i big')}<b>Nothing left to do</b></div>`}
+      ${done.length ? `<details class="donebox"><summary>Done (${list.filter(t => t.done).length})</summary><ul class="tasks">${done.map(t => taskRow(t, all)).join('')}</ul></details>` : ''}${todoPart}`;
   }
   // ---------- announcements (shared by the dashboard and the board) ----------
   let BOARD = null, boardOpts = { sort: 'recent', topic: '', drafts: false };
@@ -349,7 +414,7 @@
   function paintDash() {
     const t = $('#dTasks'), n = $('#dNews'); if (!t || !n) return;
     t.innerHTML = tasksHtml(); n.innerHTML = newsHtml(); clampBodies(n);
-    const c = $('#dTaskCount'); if (c && DASH) { const k = DASH.tasks.filter(x => !x.done).length; c.textContent = k ? k : ''; c.hidden = !k; }
+    const c = $('#dTaskCount'); if (c && DASH) { const k = DASH.tasks.filter(x => !x.done).length + (TODO && TODO.connected && TODO.tasks ? TODO.tasks.length : 0); c.textContent = k ? k : ''; c.hidden = !k; }
     document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === taskTab));
   }
   async function loadDash() {
@@ -375,7 +440,7 @@
   function viewHome() {
     const fv = favs.map(k => ITEMS.find(x => x.key === k)).filter(Boolean);
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    setTimeout(loadDash);
+    setTimeout(loadDash); setTimeout(() => loadTodo());
     const admin = isAdminMe();
     return `<section class="dash" aria-label="Dashboard">
       <div class="dhero"><p class="ddate">${esc(today)}</p><h1 class="dhello">${greeting()}, ${esc(ME ? ME.name : '')}</h1></div>
@@ -520,6 +585,8 @@
   folders.addEventListener('click', e => { if (e.target.closest('[data-act]')) onAct(e); }, true);
   pane.addEventListener('click', e => {
     if (e.target.closest('[data-act]')) { onAct(e); return; }
+    const td = e.target.closest('[data-todo]');
+    if (td) { todoAct(td); return; }
     const na = e.target.closest('[data-nact]');
     if (na) { onNewsAct(na); return; }
     const tt = e.target.closest('[data-topic]');
@@ -663,6 +730,10 @@
     if (isAdminMe()) { EDIT = !!store.get('wsh-edit', false); if (eb) { eb.setAttribute('aria-pressed', EDIT); eb.classList.toggle('on', EDIT); eb.onclick = () => setEdit(!EDIT); } }
     const qs = new URLSearchParams(location.search);
     if (qs.get('account') && ME.passwordLogin !== false) changePassword();
+    const TODO_MSG = { connected: ['ok', 'Microsoft To Do is connected. Your tasks are on your dashboard.'], denied: ['error', 'Microsoft To Do wasn’t connected because access was declined.'],
+      consent: ['error', 'Microsoft didn’t allow access to To Do. Your IT admin may need to approve the “Tasks.ReadWrite” permission for the Whitespace Hub app.'],
+      'wrong-account': ['error', 'That Microsoft account doesn’t match the one you use for the hub. Connect with your own work account.'], failed: ['error', 'Microsoft To Do couldn’t be connected. Try again.'], off: ['error', 'Microsoft To Do isn’t set up for the hub yet.'] };
+    if (TODO_MSG[qs.get('todo')]) { const [k, t] = TODO_MSG[qs.get('todo')]; toast(`${icon(k === 'ok' ? 'check' : 'err')}<span>${esc(t)}</span>`, k); }
     if (qs.get('notice') === 'admin-only') toast(`${icon('info')}<span>That page is for admins. Ask an admin if you need access.</span>`);
     if (qs.toString()) history.replaceState(null, '', location.pathname + location.hash);
     renderFolders(activeFolder);
