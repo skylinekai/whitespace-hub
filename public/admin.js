@@ -5,6 +5,7 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const app = $('#app');
   const P = {
+    rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
     inbox: 'M5.4 3h9.2c.9 0 1.6.6 1.9 1.4l1.4 5.3v4.8c0 1.4-1.1 2.5-2.5 2.5h-11A2.5 2.5 0 0 1 2 14.5V9.7l1.4-5.3C3.7 3.6 4.5 3 5.4 3Zm0 1a1 1 0 0 0-1 .7L3.2 9H7c.3 0 .5.2.5.5a2.5 2.5 0 0 0 5 0c0-.3.2-.5.5-.5h3.8l-1.2-4.3a1 1 0 0 0-1-.7H5.4ZM3 10v4.5c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5V10h-3.5a3.5 3.5 0 0 1-7 0H3Z',
     form: 'M6 2a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V7.4c0-.4-.2-.8-.4-1.1l-3.9-3.9c-.3-.2-.7-.4-1.1-.4H6ZM5 4c0-.6.4-1 1-1h4v3.5c0 .8.7 1.5 1.5 1.5H15v8c0 .6-.4 1-1 1H6a1 1 0 0 1-1-1V4Zm9.8 3h-3.3a.5.5 0 0 1-.5-.5V3.2L14.8 7Z',
     chev: 'M7.6 4.1a.5.5 0 0 1 .7 0l5.5 5.5c.2.2.2.6 0 .8l-5.5 5.5a.5.5 0 0 1-.7-.7l5.1-5.2-5.1-5.2a.5.5 0 0 1 0-.7Z',
@@ -34,11 +35,18 @@
 
   // form names and departments, from the hub content
   const FORM_NAMES = {}, GROUPS = [];
-  window.HUB.forEach(d => {
-    const list = [];
-    d.g.forEach(([, items]) => items.forEach(it => { if (it[0] === 'f' && !FORM_NAMES[it[2]]) { FORM_NAMES[it[2]] = it[1]; list.push(it[2]); } }));
-    if (list.length) GROUPS.push({ id: d.id, name: d.name, color: d.c, forms: list });
-  });
+  async function loadContent() {
+    const [hub, forms] = await Promise.all([fetch('/api/hub').then(r => r.json()), fetch('/api/forms').then(r => r.json())]);
+    const seen = new Set();
+    (forms || []).forEach(f => { FORM_NAMES[f.id] = f.name; });
+    (hub.departments || []).forEach(d => {
+      const list = [];
+      d.sections.forEach(s => s.items.forEach(it => { if (it.kind === 'form' && FORM_NAMES[it.formId] && !seen.has(it.formId)) { seen.add(it.formId); list.push(it.formId); } }));
+      if (list.length) GROUPS.push({ id: d.id, name: d.name, color: d.color, forms: list });
+    });
+    const rest = (forms || []).map(f => f.id).filter(id => !seen.has(id));
+    if (rest.length) GROUPS.push({ id: '_other', name: 'Other forms', color: '#616161', forms: rest });
+  }
 
   let me = null, summary = {}, state = { form: '', status: 'all', q: '', rows: [], total: 0, sel: null };
 
@@ -178,7 +186,7 @@
     const msOn = !!me.microsoftLogin, pwOn = me.passwordLogin !== false;
     const admins = list.filter(u => u.role === 'admin').length;
     pane.innerHTML = `
-      <div class="uhead"><div><h1>Users</h1><div class="meta">${list.length} ${list.length === 1 ? 'person' : 'people'} · Admins can see submissions, manage users and rename folders. Viewers can use the hub, forms and documents, and see the carbon platform read-only.${msOn ? (me.msAutoAdd ? ' Anyone in Skyline Whitespace’s Microsoft 365 can sign in with Microsoft and is added here as a Viewer.' : ' People sign in with their Microsoft 365 account once you’ve added them here.') : ''}</div></div>
+      <div class="uhead"><div><h1>Users</h1><div class="meta">${list.length} ${list.length === 1 ? 'person' : 'people'} · Admins can see submissions, manage users, edit the hub, assign tasks and post announcements. Viewers can use the hub, forms and documents, and see the carbon platform read-only.${msOn ? (me.msAutoAdd ? ' Anyone in Skyline Whitespace’s Microsoft 365 can sign in with Microsoft and is added here as a Viewer.' : ' People sign in with their Microsoft 365 account once you’ve added them here.') : ''}</div></div>
         <button class="btn primary" type="button" id="addBtn">${icon('add')}Add user</button></div>
       <div id="unote">${note || ''}</div>
       <form class="addform" id="addForm" hidden novalidate>
@@ -198,7 +206,7 @@
           <span class="uname" role="cell"><span class="ava">${esc(initials(u.name))}</span><span><b>${esc(u.name)}${u.id === meId ? ' <em>(you)</em>' : ''}</b><small>${esc(u.email)}${u.microsoft ? ' · <span class="mstag">Microsoft</span>' : ''}</small></span></span>
           <span role="cell"><select class="ctl role" aria-label="Permission for ${esc(u.name)}"${u.role === 'admin' && admins === 1 ? ' title="There must be at least one admin"' : ''}><option value="admin"${u.role === 'admin' ? ' selected' : ''}>Admin</option><option value="viewer"${u.role === 'viewer' ? ' selected' : ''}>Viewer</option></select></span>
           <span role="cell" class="last">${when(u.lastLogin)}</span>
-          <span role="cell" class="uact">${pwOn ? `<button class="cmd reset" type="button">${icon('key')}${msOn ? 'Backup password' : 'Reset password'}</button>` : ''}${u.id === meId ? '' : `<button class="cmd remove" type="button" style="color:var(--danger)">${icon('del')}Remove</button>`}</span>
+          <span role="cell" class="uact"><button class="cmd rename" type="button">${icon('rename')}Rename</button>${pwOn ? `<button class="cmd reset" type="button">${icon('key')}${msOn ? 'Backup password' : 'Reset password'}</button>` : ''}${u.id === meId ? '' : `<button class="cmd remove" type="button" style="color:var(--danger)">${icon('del')}Remove</button>`}</span>
           <div class="uslot"></div>
         </div>`).join('')}
       </div>`;
@@ -223,6 +231,15 @@
           if (id === meId && e.target.value !== 'admin') { location.replace('/?notice=admin-only'); return; }
           renderUsers(`<div class="bar-msg ok">${icon('check')}<div>${esc(u.name)} is now ${e.target.value === 'admin' ? 'an Admin' : 'a Viewer'}.</div></div>`);
         } catch (x) { e.target.value = u.role; fail(x.message); }
+      };
+      row.querySelector('.rename').onclick = () => {
+        slot.innerHTML = `<form class="confirm" style="background:var(--pane-2)"><label for="rn${id}" style="font-weight:600">Full name</label><input class="ctl" id="rn${id}" maxlength="80" style="flex:1;min-width:180px" value="${esc(u.name)}"><button class="btn" type="button" data-no>Cancel</button><button class="btn primary" type="submit">Save</button></form>`;
+        const f = slot.querySelector('form'), inp = f.querySelector('input'); inp.focus(); inp.select();
+        f.querySelector('[data-no]').onclick = () => { slot.innerHTML = ''; };
+        f.onsubmit = async e => { e.preventDefault();
+          try { await api('/api/admin/users/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: inp.value }) });
+            renderUsers(`<div class="bar-msg ok">${icon('check')}<div>Saved. ${esc(inp.value.trim())} will see their new name next time they open the hub.</div></div>`);
+          } catch (x) { fail(x.message); } };
       };
       if (row.querySelector('.reset')) row.querySelector('.reset').onclick = () => {
         const pw = tempPw();
@@ -261,9 +278,9 @@
   }
   async function start() {
     me = await fetch('/api/admin/me').then(r => r.json());
-    try { const names = await fetch('/api/dept-names').then(r => r.json()); GROUPS.forEach(g => { if (names[g.id]) g.name = names[g.id]; }); } catch { }
     if (!me.user) return showLogin();
     if (!me.signedIn) return location.replace('/?notice=admin-only');
+    try { await loadContent(); } catch { }
     shell();
     $('#lbody').addEventListener('click', e => {
       const m = e.target.closest('.msg'); if (m) { const id = Number(m.dataset.id); history.replaceState(null, '', '#s-' + id); openSub(id); }

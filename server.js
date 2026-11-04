@@ -6,13 +6,30 @@ const path = require('path');
 const fs = require('fs');
 const Engine = require('./public/engine.js');
 const makeStore = require('./lib/store');
-const { notify } = require('./lib/mail');
+const { notify, taskAssigned } = require('./lib/mail');
+const { makeBoard } = require('./lib/board');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
-const FORMS = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'forms.json'), 'utf8'));
-const byId = Object.fromEntries(FORMS.map(f => [f.id, f]));
+const Content = require('./lib/content');
+// Forms and hub content live in the database; these are in-memory copies kept in step with it.
+const byId = {};
+let HUB = null;
+async function initContent() {
+  const forms = await store.listForms();
+  if (!forms.length) { const seed = Content.seedForms(); await store.saveForms(seed); forms.push(...seed); console.log(`[content] Loaded ${seed.length} starting forms.`); }
+  for (const f of forms) byId[f.id] = f;
+  HUB = await store.getSetting('hub');
+  if (!HUB) {
+    const doc = Content.cleanHub(Content.seedHub((await store.getSetting('deptNames')) || {}), new Set(Object.keys(byId)));
+    HUB = Object.assign({ version: 1 }, doc);
+    await store.setSetting('hub', HUB);
+    console.log(`[content] Set up the hub with ${HUB.departments.length} folders.`);
+  }
+}
+const formIndex = () => Object.values(byId).map(f => ({ id: f.id, name: f.name })).sort((a, b) => a.name.localeCompare(b.name));
 const store = makeStore();
+const board = makeBoard(store);
 const MAX_FILE = 25 * 1024 * 1024, MAX_BODY = 200 * 1024 * 1024;
 
 // ---------- helpers ----------
@@ -266,6 +283,124 @@ function proxyCarbon(req, res, user) {
   req.pipe(up);
 }
 
+// ---------- content editing ----------
+const MAX_DOC = 50 * 1024 * 1024;
+async function saveHub(doc, by) {
+  const clean = Content.cleanHub(doc, new Set(Object.keys(byId)));
+  HUB = Object.assign({ version: (HUB.version || 0) + 1, updatedAt: new Date().toISOString(), updatedBy: by }, clean);
+  await store.setSetting('hub', HUB);
+  tidyDocs().catch(e => console.error('[content] tidy-up failed:', e.message));
+  return HUB;
+}
+// Delete uploaded files nothing links to any more (after an hour, so a fresh upload isn't removed before it's used)
+async function tidyDocs() {
+  const used = Content.referencedDocIds(HUB), cutoff = Date.now() - 3600e3;
+  for (const d of await store.listDocs()) if (!used.has(d.id) && new Date(d.createdAt).getTime() < cutoff) await store.deleteDoc(d.id);
+}
+async function contentRoute(req, res, p, m, url) {
+  let mt;
+  if (p === '/api/admin/content' && m === 'PUT') {
+    const body = await readJson(req);
+    if (Number(body.version) !== HUB.version) return json(res, 409, { error: 'Someone else changed the hub a moment ago. The latest version has been loaded; make your change again.', hub: HUB });
+    return json(res, 200, await saveHub(body, req._user.email));
+  }
+  if (p === '/api/admin/forms' && m === 'POST') {
+    const body = await readJson(req);
+    const id = Content.newId('n');
+    const src = body.copyOf && byId[body.copyOf];
+    const def = src ? Object.assign(JSON.parse(JSON.stringify(src)), { id, name: (String(body.name || '').trim() || src.name + ' (copy)').slice(0, 120) })
+      : { id, name: (String(body.name || '').trim() || 'Untitled form').slice(0, 120), fields: [{ id: '1', type: 'head', label: String(body.name || '').trim() || 'Untitled form' }, { id: '2', type: 'fullname', label: 'Your name', required: true }], rules: [] };
+    const clean = Content.cleanForm(def);
+    await store.saveForm(clean); byId[id] = clean;
+    return json(res, 201, clean);
+  }
+  if ((mt = p.match(/^\/api\/admin\/forms\/([A-Za-z0-9_-]{1,64})$/))) {
+    const id = mt[1];
+    if (!byId[id]) return json(res, 404, { error: 'This form no longer exists.' });
+    if (m === 'PUT') {
+      const clean = Content.cleanForm(Object.assign(await readJson(req), { id }));
+      await store.saveForm(clean); byId[id] = clean;
+      return json(res, 200, clean);
+    }
+    if (m === 'DELETE') {
+      await store.deleteForm(id); delete byId[id];
+      const doc = JSON.parse(JSON.stringify(HUB));
+      for (const d of doc.departments) for (const s of d.sections) s.items = s.items.filter(it => !(it.kind === 'form' && it.formId === id));
+      return json(res, 200, { ok: true, hub: await saveHub(doc, req._user.email) });
+    }
+  }
+  if (p === '/api/admin/files' && m === 'POST') {
+    const ct = req.headers['content-type'] || '';
+    if (!ct.startsWith('multipart/form-data')) return json(res, 400, { error: 'Choose a file to upload.' });
+    let fd;
+    try { fd = await new Request('http://local/', { method: 'POST', headers: { 'content-type': ct }, body: await readBody(req, MAX_DOC + 1e6) }).formData(); }
+    catch (e) { return json(res, e.code === 'TOO_BIG' ? 413 : 400, { error: e.code === 'TOO_BIG' ? 'That file is over 50 MB. Upload a smaller version, or link to it instead.' : 'The file could not be read.' }); }
+    const file = fd.get('file');
+    if (!file || typeof file === 'string' || !file.size) return json(res, 400, { error: 'Choose a file to upload.' });
+    if (file.size > MAX_DOC) return json(res, 413, { error: 'That file is over 50 MB. Upload a smaller version, or link to it instead.' });
+    const filename = String(file.name || 'file').replace(/[\\/\0]/g, '_').slice(0, 200);
+    const d = await store.createDoc({ filename, mime: file.type || 'application/octet-stream', buffer: Buffer.from(await file.arrayBuffer()) });
+    return json(res, 201, { id: d.id, filename, size: d.size, url: `/files/${d.id}/${encodeURIComponent(filename)}` });
+  }
+  if (p === '/api/admin/import-docs') {
+    if (m === 'POST' && !importJob.running) runImport(req._user.email);
+    return json(res, 200, importStatus());
+  }
+  return json(res, 404, { error: 'Not found' });
+}
+const SAFE_INLINE = /^(image\/(png|jpeg|gif|webp)|application\/pdf|video\/mp4|text\/plain)$/;
+async function serveDoc(req, res, id, url) {
+  const f = await store.getDoc(id);
+  if (!f) return send(res, 404, 'This file has been removed.');
+  const inline = SAFE_INLINE.test(f.mime) && !url.searchParams.has('download');
+  res.writeHead(200, Object.assign({}, SEC_HEADERS, { 'Content-Type': inline ? f.mime : 'application/octet-stream', 'Content-Length': f.buffer.length,
+    'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(f.filename)}`, 'Cache-Control': 'private, max-age=86400',
+    'Content-Security-Policy': "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox" }));
+  res.end(req.method === 'HEAD' ? undefined : f.buffer);
+}
+
+// ---------- copy documents that still live on Jotform into the hub ----------
+const IMPORT_HOSTS = (process.env.IMPORT_DOC_HOSTS || 'jotform.com').split(',').map(s => s.trim()).filter(Boolean);
+const isImportable = u => { try { const h = new URL(u).hostname; return IMPORT_HOSTS.some(x => h === x || h.endsWith('.' + x)); } catch { return false; } };
+const importJob = { running: false, total: 0, done: 0, copied: 0, failed: [], finishedAt: null };
+function importStatus() {
+  const waiting = []; for (const d of HUB.departments) for (const s of d.sections) for (const it of s.items) if (it.kind === 'doc' && isImportable(it.url)) waiting.push(it.id);
+  return Object.assign({ remaining: waiting.length }, importJob);
+}
+async function runImport(by) {
+  Object.assign(importJob, { running: true, total: 0, done: 0, copied: 0, failed: [], finishedAt: null });
+  try {
+    const todo = [];
+    for (const d of HUB.departments) for (const s of d.sections) for (const it of s.items) if (it.kind === 'doc' && isImportable(it.url)) todo.push(it);
+    importJob.total = todo.length;
+    const moved = {};
+    for (const it of todo) {
+      try {
+        const r = await fetch(it.url, { signal: AbortSignal.timeout(90e3), redirect: 'follow' });
+        if (!r.ok) throw new Error(`the file server answered ${r.status}`);
+        const len = Number(r.headers.get('content-length') || 0);
+        if (len > MAX_DOC) throw new Error('it is over 50 MB, so it stays as a link');
+        const buf = Buffer.from(await r.arrayBuffer());
+        if (buf.length > MAX_DOC) throw new Error('it is over 50 MB, so it stays as a link');
+        let filename = decodeURIComponent(new URL(it.url).pathname.split('/').pop() || 'file');
+        filename = filename.replace(/\.[0-9a-f]{12,}\.[0-9]+(?=\.[a-z0-9]+$)/i, '').replace(/-[0-9a-f]{12,}\.[0-9]+(?=\.[a-z0-9]+$)/i, '').replace(/[\\/\0]/g, '_').slice(0, 200);
+        const mime = (r.headers.get('content-type') || 'application/octet-stream').split(';')[0].trim();
+        const doc = await store.createDoc({ filename, mime, buffer: buf });
+        moved[it.id] = { url: `/files/${doc.id}/${encodeURIComponent(filename)}`, fileName: filename };
+        importJob.copied++;
+      } catch (e) { importJob.failed.push({ title: it.title, reason: e.name === 'TimeoutError' ? 'it took too long to download' : e.message === 'fetch failed' ? 'it couldn’t be downloaded (the link may be broken)' : e.message }); }
+      importJob.done++;
+    }
+    if (Object.keys(moved).length) {
+      const doc = JSON.parse(JSON.stringify(HUB));
+      for (const d of doc.departments) for (const s of d.sections) for (const it of s.items) if (moved[it.id]) Object.assign(it, moved[it.id]);
+      await saveHub(doc, by);
+    }
+    console.log(`[content] Copied ${importJob.copied} of ${importJob.total} documents from Jotform.`);
+  } catch (e) { console.error('[content] Document copy failed:', e); importJob.failed.push({ title: 'All documents', reason: e.message }); }
+  Object.assign(importJob, { running: false, finishedAt: new Date().toISOString() });
+}
+
 // Short-lived signed values (used to carry Microsoft sign-in state through the redirect)
 const signBlob = obj => { const b = Buffer.from(JSON.stringify(obj)).toString('base64url'); return b + '.' + crypto.createHmac('sha256', SECRET).update('blob:' + b).digest('base64url'); };
 function readBlob(v) {
@@ -306,6 +441,8 @@ async function route(req, res) {
     }
     const f = { lastLogin: new Date().toISOString() };
     if (!u.msOid) f.msOid = who.oid;
+    // Fill in the full name from Microsoft 365 when only a first name (or the email) is stored
+    if (who.name && who.name.includes(' ') && who.name !== who.email && (!u.name.includes(' ') || u.name === u.email)) f.name = who.name.slice(0, 80);
     await store.updateUser(u.id, f);
     return send(res, 302, '', { Location: safeNext(pending.next), 'Set-Cookie': [sessionCookie(req, u), clearMs] });
   }
@@ -338,7 +475,7 @@ async function route(req, res) {
 
   if (p === '/carbon') return send(res, 301, '', { Location: '/carbon/' });
   if (p.startsWith('/carbon/')) return proxyCarbon(req, res, user);
-  if ((mt = p.match(/^\/api\/forms\/(\d+)\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1], user);
+  if ((mt = p.match(/^\/api\/forms\/([A-Za-z0-9_-]{1,64})\/submit$/)) && m === 'POST') return handleSubmit(req, res, mt[1], user);
 
   if (p === '/api/me' && m === 'GET') return json(res, 200, Object.assign(pub(user), { passwordLogin: PASSWORD_LOGIN, microsoftLogin: MS.enabled && !MS.problem }));
   if (p === '/api/me/password' && m === 'POST') {
@@ -353,16 +490,69 @@ async function route(req, res) {
     return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(req, Object.assign({}, user, { tokenVersion })) });
   }
 
-  // Department folder names (renamed from the hub's folder pane; shared by everyone)
-  if (p === '/api/dept-names' && m === 'GET') return json(res, 200, (await store.getSetting('deptNames')) || {}, { 'Cache-Control': 'no-cache' });
-  if ((mt = p.match(/^\/api\/admin\/dept-names\/([a-z0-9-]{1,60})$/)) && m === 'PUT') {
-    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can rename folders.' });
-    const name = String((await readJson(req)).name ?? '').replace(/\s+/g, ' ').trim();
-    if (name.length > 60) return json(res, 400, { error: 'Keep folder names to 60 characters or fewer.' });
-    const names = (await store.getSetting('deptNames')) || {};
-    if (name) names[mt[1]] = name; else delete names[mt[1]];   // empty name = back to the original
-    await store.setSetting('deptNames', names);
-    return json(res, 200, names);
+  // ----- dashboard: my tasks and announcements -----
+  if (p === '/api/dashboard' && m === 'GET') {
+    const [tasks, news] = await Promise.all([board.tasksFor(user.id), board.news()]);
+    return json(res, 200, { user: pub(user), tasks, news }, { 'Cache-Control': 'no-cache' });
+  }
+  if ((mt = p.match(/^\/api\/tasks\/([a-z0-9]{1,40})\/done$/)) && m === 'POST') {
+    const t = await board.setDone(mt[1], (await readJson(req)).done !== false, user, isAdmin(user));
+    if (t === null) return json(res, 404, { error: 'That task has been removed.' });
+    if (t === false) return json(res, 403, { error: 'That task belongs to someone else.' });
+    return json(res, 200, t);
+  }
+  if (p.startsWith('/api/admin/tasks') || p.startsWith('/api/admin/news')) {
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });
+    try {
+      if (p === '/api/admin/tasks' && m === 'GET') {
+        const users = await store.listUsers(), names = Object.fromEntries(users.map(u => [u.id, u.name]));
+        return json(res, 200, { tasks: (await board.allTasks()).map(t => Object.assign({ assigneeName: names[t.assignee] || 'Removed user' }, t)), people: users.map(u => ({ id: u.id, name: u.name, email: u.email })) });
+      }
+      if (p === '/api/admin/tasks' && m === 'POST') {
+        const b = await readJson(req), who = await store.getUser(Number(b.assignee));
+        if (!who) return json(res, 400, { error: 'Choose who the task is for.' });
+        const t = await board.createTask(b, user);
+        if (who.id !== user.id) taskAssigned(t, who, user.name).catch(e => console.error('[mail] task email failed:', e.message));
+        return json(res, 201, t);
+      }
+      if ((mt = p.match(/^\/api\/admin\/tasks\/([a-z0-9]{1,40})$/))) {
+        if (m === 'DELETE') return (await board.deleteTask(mt[1])) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'That task has already been removed.' });
+        if (m === 'PUT') {
+          const b = await readJson(req);
+          if (b.assignee !== undefined && !(await store.getUser(Number(b.assignee)))) return json(res, 400, { error: 'Choose who the task is for.' });
+          const before = (await board.allTasks()).find(t => t.id === mt[1]);
+          const t = await board.updateTask(mt[1], b);
+          if (!t) return json(res, 404, { error: 'That task has been removed.' });
+          if (before && before.assignee !== t.assignee && t.assignee !== user.id) store.getUser(t.assignee).then(w => taskAssigned(t, w, user.name)).catch(e => console.error('[mail] task email failed:', e.message));
+          return json(res, 200, t);
+        }
+      }
+      if (p === '/api/admin/news' && m === 'POST') return json(res, 201, await board.createNews(await readJson(req), user));
+      if ((mt = p.match(/^\/api\/admin\/news\/([a-z0-9]{1,40})$/))) {
+        if (m === 'DELETE') return (await board.deleteNews(mt[1])) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'That announcement has already been removed.' });
+        if (m === 'PUT') { const n = await board.updateNews(mt[1], await readJson(req)); return n ? json(res, 200, n) : json(res, 404, { error: 'That announcement has been removed.' }); }
+      }
+      return json(res, 404, { error: 'Not found' });
+    } catch (e) {
+      if (e instanceof board.Invalid) return json(res, 400, { error: e.message });
+      throw e;
+    }
+  }
+
+  // ----- hub content (everyone signed in can read it) -----
+  if (p === '/api/hub' && m === 'GET') return json(res, 200, HUB, { 'Cache-Control': 'no-cache' });
+  if (p === '/api/forms' && m === 'GET') return json(res, 200, formIndex(), { 'Cache-Control': 'no-cache' });
+  if ((mt = p.match(/^\/api\/forms\/([A-Za-z0-9_-]{1,64})$/)) && m === 'GET') {
+    const f = byId[mt[1]];
+    return f ? json(res, 200, f, { 'Cache-Control': 'no-cache' }) : json(res, 404, { error: 'This form no longer exists.' });
+  }
+  if ((mt = p.match(/^\/files\/([0-9a-f-]{36})(?:\/[^/]*)?$/)) && (m === 'GET' || m === 'HEAD')) return serveDoc(req, res, mt[1], url);
+
+  // ----- editing content (admins) -----
+  if (p.startsWith('/api/admin/content') || p.startsWith('/api/admin/forms') || p === '/api/admin/files' || p.startsWith('/api/admin/import-docs')) {
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can change the hub.' });
+    try { return await contentRoute(req, res, p, m, url); }
+    catch (e) { if (e instanceof Content.Invalid) return json(res, 400, { error: e.message }); throw e; }
   }
   if (p === '/api/admin/me') return json(res, 200, { signedIn: isAdmin(user), user: pub(user), storage: store.kind, email: !!process.env.SMTP_HOST, passwordLogin: PASSWORD_LOGIN, microsoftLogin: MS.enabled && !MS.problem, msAutoAdd: MS.autoAdd });
   if (p === '/admin' && !isAdmin(user)) return send(res, 302, '', { Location: '/?notice=admin-only' });
@@ -443,7 +633,7 @@ async function route(req, res) {
       const inline = /^(image\/(png|jpeg|gif|webp)|application\/pdf)$/.test(f.mime) && !url.searchParams.has('download');
       return send(res, 200, f.buffer, { 'Content-Type': inline ? f.mime : 'application/octet-stream', 'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(f.filename)}`, 'Cache-Control': 'private, max-age=3600', 'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox" });
     }
-    if ((mt = p.match(/^\/api\/admin\/export\/(\d+)$/))) return exportCsv(res, mt[1]);
+    if ((mt = p.match(/^\/api\/admin\/export\/([A-Za-z0-9_-]{1,64})$/))) return exportCsv(res, mt[1]);
     return json(res, 404, { error: 'Not found' });
   }
   if (m === 'GET' || m === 'HEAD') return serveStatic(req, res, p);
@@ -454,5 +644,5 @@ const server = http.createServer((req, res) => {
   route(req, res).catch(e => { console.error(e); if (!res.headersSent) json(res, 500, { error: 'Something went wrong on the server.' }); });
 });
 server.requestTimeout = 10 * 60e3;
-store.init().then(initAuth).then(() => { if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon(); }).then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
+store.init().then(initAuth).then(initContent).then(() => { if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon(); }).then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
   .catch(e => { console.error('Could not start storage:', e); process.exit(1); });

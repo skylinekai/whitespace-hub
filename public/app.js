@@ -39,6 +39,18 @@
     people: 'M7.5 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-2 3a2 2 0 1 1 4 0 2 2 0 0 1-4 0ZM14 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-1 2a1 1 0 1 1 2 0 1 1 0 0 1-2 0ZM3.5 10C2.7 10 2 10.7 2 11.5v.3c0 1.6 1.9 3.2 5.5 3.2s5.5-1.6 5.5-3.2v-.3c0-.8-.7-1.5-1.5-1.5h-8ZM3 11.5c0-.3.2-.5.5-.5h8c.3 0 .5.2.5.5v.3c0 .9-1.3 2.2-4.5 2.2S3 12.7 3 11.8v-.3Zm11 2.5c-.6 0-1.2-.1-1.7-.2.2-.3.4-.6.5-1h1.2c2.2 0 3-1 3-1.6v-.2c0-.3-.2-.5-.5-.5h-2.6c-.1-.4-.3-.7-.6-1H16.5c.8 0 1.5.7 1.5 1.5v.2C18 12.6 16.6 14 14 14Z',
     signout: 'M8.5 11.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM11 3.5c0-.3-.2-.5-.5-.5H5.6c-.9 0-1.6.7-1.6 1.6v10.8c0 .9.7 1.6 1.6 1.6h4.9c.3 0 .5-.2.5-.5V3.5ZM10 4v12H5.6a.6.6 0 0 1-.6-.6V4.6c0-.3.3-.6.6-.6H10Zm3.9 3.1a.5.5 0 0 1 .7 0l2.6 2.5c.2.2.2.6 0 .8l-2.6 2.5a.5.5 0 0 1-.7-.7l1.8-1.7H12.5a.5.5 0 0 1 0-1h3.2l-1.8-1.7a.5.5 0 0 1 0-.7Z',
     key: 'M12.5 2a5.5 5.5 0 0 1 0 11c-.5 0-.9 0-1.4-.2L9.9 14H8.5v1.5c0 .3-.2.5-.5.5H6.5v1.5c0 .3-.2.5-.5.5H2.5a.5.5 0 0 1-.5-.5v-2.3c0-.4.2-.8.4-1.1l4.8-4.8A5.5 5.5 0 0 1 12.5 2Zm0 1a4.5 4.5 0 0 0-4.3 5.9l.1.3-.2.2-5 5-.1.4V17h3v-1.5c0-.3.2-.5.5-.5h1.5v-1.5c0-.3.2-.5.5-.5h1.8l1.3-1.3.3.1A4.5 4.5 0 1 0 12.5 3ZM14 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z',
+    more: 'M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z',
+    add: 'M10 3a.5.5 0 0 1 .5.5v6h6a.5.5 0 0 1 0 1h-6v6a.5.5 0 0 1-1 0v-6h-6a.5.5 0 0 1 0-1h6v-6c0-.3.2-.5.5-.5Z',
+    up: 'M9.6 3.1c.2-.2.6-.2.8 0l5.5 5.5a.5.5 0 0 1-.7.7L10.5 4.7v11.8a.5.5 0 0 1-1 0V4.7L4.9 9.3a.5.5 0 0 1-.7-.7l5.4-5.5Z',
+    down: 'M10.4 16.9c-.2.2-.6.2-.8 0l-5.5-5.5a.5.5 0 0 1 .7-.7l4.7 4.6V3.5a.5.5 0 0 1 1 0v11.8l4.6-4.6a.5.5 0 0 1 .7.7l-5.4 5.5Z',
+    del: 'M8.5 4h3a1.5 1.5 0 0 0-3 0Zm-1 0a2.5 2.5 0 0 1 5 0h4a.5.5 0 0 1 0 1h-.6l-1.2 10.4A2.5 2.5 0 0 1 12.2 18H7.8a2.5 2.5 0 0 1-2.5-2.2L4.1 5h-.6a.5.5 0 0 1 0-1h4Zm-2.2 11.7c.1.8.7 1.3 1.5 1.3h4.4c.8 0 1.4-.5 1.5-1.3L14.9 5H5.1l1.2 10.7ZM8.5 7.5c.3 0 .5.2.5.5v6a.5.5 0 0 1-1 0V8c0-.3.2-.5.5-.5ZM12 8a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V8Z',
+    palette: 'M10 2a8 8 0 0 0 0 16c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h1.5A3.5 3.5 0 0 0 18 8a6 6 0 0 0-8-6Zm0 1c3.9 0 7 2.4 7 5 0 1.4-1.1 2.5-2.5 2.5H13a3 3 0 0 0-3 3c0 .7.3 1.3.7 1.8.2.2.3.4.3.7 0 .6-.4 1-1 1a7 7 0 0 1 0-14Zm-4 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm2-3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z',
+    tick: 'M7.9 13.9 4.4 10.4a.6.6 0 0 1 .8-.9l3.1 3.1 6.5-6.5a.6.6 0 1 1 .8.9l-6.9 6.9a.6.6 0 0 1-.8 0Z',
+    cal: 'M14.5 3A2.5 2.5 0 0 1 17 5.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5v-9A2.5 2.5 0 0 1 5.5 3h9ZM16 7H4v7.5c0 .8.7 1.5 1.5 1.5h9c.8 0 1.5-.7 1.5-1.5V7Zm-1.5-3h-9C4.7 4 4 4.7 4 5.5V6h12v-.5c0-.8-.7-1.5-1.5-1.5Z',
+    person: 'M10 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 9h10a2 2 0 0 1 2 2c0 1.7-.8 2.9-2.1 3.7-1.2.8-2.9 1.3-4.9 1.3s-3.7-.5-4.9-1.3A4.2 4.2 0 0 1 3 14c0-1.1.9-2 2-2Zm0 1a1 1 0 0 0-1 1c0 1.3.6 2.2 1.6 2.9 1 .7 2.6 1.1 4.4 1.1s3.4-.4 4.4-1.1c1-.7 1.6-1.6 1.6-2.9a1 1 0 0 0-1-1H5Z',
+    megaphone: 'M15.5 3.1c.3.1.5.4.5.7v12.4a.8.8 0 0 1-1.1.7L10.7 15H9.5l.8 2.4a.5.5 0 0 1-.5.6H7.6a.5.5 0 0 1-.5-.3L6 15H5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5.7l4.2-1.9a.8.8 0 0 1 .6 0ZM15 4.2 11 6v8l4 1.8V4.2ZM10 6H5a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h5V6Zm-1.6 9H7.1l.9 2h1.1l-.7-2Zm9.1-7.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V8c0-.3.2-.5.5-.5Z',
+    pin: 'M12.8 2.4a1.5 1.5 0 0 0-2.4.4L8.6 6.5 5 7.6a1 1 0 0 0-.4 1.7l2.5 2.5-3.9 3.9a.5.5 0 0 0 .7.7l3.9-3.9 2.5 2.5a1 1 0 0 0 1.7-.4l1.1-3.6 3.7-1.8a1.5 1.5 0 0 0 .4-2.4l-4.4-4.4Zm-1.5.9a.5.5 0 0 1 .8-.2l4.4 4.4c.3.3.2.7-.2.8l-3.9 2c-.1 0-.2.2-.3.3l-1.2 3.8L5.5 9l3.8-1.2.3-.3 2-3.9Z',
+    copy: 'M8 2a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8ZM7 4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4ZM4 6a2 2 0 0 1 1-1.7V14.5A2.5 2.5 0 0 0 7.5 17h6.2a2 2 0 0 1-1.7 1H7.5A3.5 3.5 0 0 1 4 14.5V6Z',
     rename: 'M14.2 2.9a2 2 0 0 1 2.9 2.9l-9.4 9.4c-.3.3-.6.5-1 .6l-3.6 1.2a.5.5 0 0 1-.6-.6l1.2-3.6c.1-.4.3-.7.6-1l9.9-9.9Zm2.2.7a1 1 0 0 0-1.5 0l-.9 1 1.5 1.4.9-.9a1 1 0 0 0 0-1.5Zm-1.6 3.1-1.4-1.5-8 8-.3.4-.8 2.4 2.4-.8.4-.3 7.7-8.2Z',
     undo: 'M4.5 3a.5.5 0 0 1 .5.5v3.3A7 7 0 1 1 3 10.5a.5.5 0 0 1 1 0 6 6 0 1 0 1.8-4.3H8.5a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5v-4c0-.3.2-.5.5-.5Z',
     eraser: 'M11.2 3.4a2 2 0 0 1 2.8 0l2.6 2.6a2 2 0 0 1 0 2.8L10.4 15H16.5a.5.5 0 0 1 0 1H8.1a2 2 0 0 1-1.5-.6L3.4 12.2a2 2 0 0 1 0-2.8l7.8-6Zm-2.5 4L4.1 10a1 1 0 0 0 0 1.4l3.2 3.2c.4.4 1 .4 1.4 0l3.6-3.6-3.6-3.6Z'
@@ -46,27 +58,39 @@
   const icon = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true"><path d="${P[n]}"/></svg>`;
   const iconEl = (n, cls) => { const s = h('span'); s.innerHTML = icon(n, cls); return s.firstChild; };
 
-  // ---------- data ----------
-  const DEPTS = window.HUB, HOME = window.HUB_HOME, QUICK = window.HUB_QUICK;
-  const byDept = Object.fromEntries(DEPTS.map(d => [d.id, d]));
-  DEPTS.forEach(d => { d.orig = d.name; });
-  const applyNames = map => DEPTS.forEach(d => { d.name = (map && map[d.id]) || d.orig; });
-  let FORMS = {};
-  const ITEMS = [];
-  DEPTS.forEach(d => d.g.forEach(([sec, items]) => items.forEach(it => {
-    const [k, t, u, m] = it;
-    if (k === 'n') return;
-    let url = u, type;
-    if (k === 'f') { url = '#form/' + u; type = 'form'; }
-    else if (k === 'l') type = 'link';
-    else if (k === 'p') { url = '#d/' + u; type = 'page'; }
-    else if (k === 'a') { type = 'app'; }
-    else { if (u.startsWith('~')) url = window.HUB_U + u.slice(1); type = 'doc'; }
-    const ext = type === 'doc' ? (url.split('?')[0].split('.').pop() || '').toLowerCase() : type;
-    ITEMS.push({ key: (k === 'f' ? 'form:' + u : type + ':' + url), type, t, url, m: m || '', ext, dept: d, sec, formId: k === 'f' ? u : null });
-  })));
-  const formDept = {};
-  ITEMS.filter(i => i.formId).forEach(i => { formDept[i.formId] = formDept[i.formId] || i; });
+  // ---------- data (loaded from the server; admins can change it) ----------
+  let HUB = null, DEPTS = [], byDept = {}, ITEMS = [], formDept = {}, HOME = [], MORE = [], FORM_LIST = [];
+  const FORMS = {};   // form definitions, fetched as needed
+  function setHub(doc) {
+    HUB = doc; DEPTS = doc.departments; byDept = Object.fromEntries(DEPTS.map(d => [d.id, d]));
+    HOME = DEPTS.filter(d => d.group !== 'more'); MORE = DEPTS.filter(d => d.group === 'more');
+    ITEMS = []; formDept = {};
+    DEPTS.forEach(d => d.sections.forEach(s => s.items.forEach(it => {
+      if (it.kind === 'note') return;
+      const type = it.kind;
+      const url = type === 'form' ? '#form/' + it.formId : type === 'page' ? '#d/' + it.target : it.url;
+      const ext = type === 'doc' ? ((it.fileName || url.split('?')[0]).split('.').pop() || '').toLowerCase() : type;
+      ITEMS.push({ key: type === 'form' ? 'form:' + it.formId : 'item:' + it.id, oldKey: type + ':' + url, type, t: it.title, url, m: it.sub || '', ext, dept: d, sec: s, it, formId: type === 'form' ? it.formId : null });
+    })));
+    ITEMS.filter(i => i.formId).forEach(i => { formDept[i.formId] = formDept[i.formId] || i; });
+    // favourites saved before items had IDs
+    if (favs.some(k => /^(doc|link|app):/.test(k))) { favs = favs.map(k => (ITEMS.find(x => x.oldKey === k) || { key: k }).key); store.set('wsh-favs', favs); }
+  }
+  async function loadHub() {
+    const r = await fetch('/api/hub');
+    if (r.status === 401) { toLogin(); throw new Error('signed out'); }
+    if (!r.ok) throw new Error('hub');
+    setHub(await r.json());
+  }
+  async function loadFormList() { try { const r = await fetch('/api/forms'); if (r.ok) FORM_LIST = await r.json(); } catch { } return FORM_LIST; }
+  async function getForm(id, fresh) {
+    if (FORMS[id] && !fresh) return FORMS[id];
+    const r = await fetch('/api/forms/' + encodeURIComponent(id));
+    if (r.status === 401) { toLogin(); throw new Error('signed out'); }
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('form');
+    return (FORMS[id] = await r.json());
+  }
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -87,15 +111,17 @@
   let activeFolder = 'home';
   function renderFolders(active) {
     activeFolder = active;
-    const f = (href, label, ic, n, cur, color, dept) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}${dept ? ` data-dept="${dept}" title="${esc(label)} – right-click to rename"` : ''}>${color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}</a>`;
+    const f = (href, label, ic, n, cur, color, dept) => `<a class="folder" href="${href}"${cur ? ' aria-current="page"' : ''}${dept ? ` data-dept="${dept}"${isAdminMe() ? ` title="${esc(label)} – right-click for options"` : ''}` : ''}>${color ? `<span class="cat" style="background:${color}"></span>` : icon(ic, 'i ic')}<span class="lbl">${esc(label)}</span>${n ? `<span class="n">${n}</span>` : ''}${dept && EDIT ? `<button class="fmore" type="button" data-act="dept-menu" data-dept="${dept}" aria-label="Options for ${esc(label)}">${icon('more')}</button>` : ''}</a>`;
+    const apps = ITEMS.filter(x => x.type === 'app');
     folders.innerHTML =
-      f('#home', 'Home', 'home', '', active === 'home') +
+      f('#home', 'Dashboard', 'home', '', active === 'home') +
       f('#fav', 'Favourites', 'star', favs.length || '', active === 'fav') +
       `<div class="grp">Departments</div>` +
-      HOME.map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]), active === id, byDept[id].c, id)).join('') +
-      `<div class="grp">More</div>` +
-      ['how-to-guides', 'essa-discount-card'].map(id => f('#d/' + id, byDept[id].name, null, counts(byDept[id]) || '', active === id, byDept[id].c, id)).join('') +
-      `<div class="grp">Apps</div>` + `<a class="folder" href="/carbon/">${icon('leaf', 'i ic')}<span class="lbl">Carbon platform</span></a>` +
+      HOME.map(d => f('#d/' + d.id, d.name, null, counts(d), active === d.id, d.color, d.id)).join('') +
+      (EDIT ? `<button class="folder addf" type="button" data-act="dept-add" data-group="main">${icon('add', 'i ic')}<span class="lbl">New folder</span></button>` : '') +
+      (MORE.length || EDIT ? `<div class="grp">More</div>` + MORE.map(d => f('#d/' + d.id, d.name, null, counts(d) || '', active === d.id, d.color, d.id)).join('') : '') +
+      (EDIT ? `<button class="folder addf" type="button" data-act="dept-add" data-group="more">${icon('add', 'i ic')}<span class="lbl">New folder in More</span></button>` : '') +
+      (apps.length ? `<div class="grp">Apps</div>` + apps.map(x => `<a class="folder" href="${esc(x.url)}">${icon('leaf', 'i ic')}<span class="lbl">${esc(x.t)}</span></a>`).join('') : '') +
       (isAdminMe() ? `<div class="grp">Admin</div>` + `<a class="folder" href="/admin">${icon('inbox', 'i ic')}<span class="lbl">Submissions</span></a>` + `<a class="folder" href="/admin#users">${icon('people', 'i ic')}<span class="lbl">Users</span></a>` : '');
   }
   const scrim = h('div', { class: 'scrim', hidden: true, onclick: () => toggleMenu(false) });
@@ -108,6 +134,7 @@
   const KIND = { form: 'Form', app: 'App', link: 'Link', page: 'Page', pdf: 'PDF', docx: 'Word', doc: 'Word', xlsx: 'Excel', pptx: 'PowerPoint', png: 'Image', jpg: 'Image', jpeg: 'Image', mp4: 'Video' };
   const BADGE = { form: icon('form'), app: icon('leaf'), link: icon('open'), page: icon('chev') };
   function row(x, { where = false, term = '' } = {}) {
+    if (EDIT && !where) return editRow(x);
     const fav = favs.includes(x.key);
     const ext = x.type === 'doc' ? x.ext : x.type;
     const badge = BADGE[ext] || esc((x.ext || 'file').toUpperCase().slice(0, 4));
@@ -115,28 +142,128 @@
     return `<div class="row">
       <span class="ft ${esc(ext)}" aria-hidden="true">${badge}</span>
       <span class="tt"><b>${hl(x.t, term)}</b>${x.m ? `<small>${hl(x.m, term)}</small>` : ''}</span>
-      ${where ? `<span class="where"><span class="cat" style="background:${x.dept.c}"></span>${esc(x.dept.name)}</span>` : ''}
+      ${where ? `<span class="where"><span class="cat" style="background:${x.dept.color}"></span>${esc(x.dept.name)}</span>` : ''}
       <span class="kind">${KIND[ext] || esc(ext.toUpperCase())}</span>
       <a class="go" href="${esc(x.url)}"${external ? ' target="_blank" rel="noopener"' : ''} aria-label="${esc(x.t)}${external ? ' (opens in a new tab)' : ''}"></a>
       ${x.type === 'page' ? '' : `<button class="star" type="button" data-fav="${esc(x.key)}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favourites">${icon(fav ? 'starOn' : 'star')}</button>`}
     </div>`;
   }
 
+  function editRow(x) {
+    const ext = x.type === 'doc' ? x.ext : x.type;
+    const badge = BADGE[ext] || esc((x.ext || 'file').toUpperCase().slice(0, 4));
+    const where = x.type === 'form' ? 'Form' : x.type === 'page' ? 'Opens ' + ((byDept[x.it.target] || {}).name || 'a folder') : x.type === 'doc' ? (x.url.startsWith('/files/') ? 'Uploaded file' : 'Linked file') : (KIND[ext] || 'Link');
+    return `<div class="row editing" data-item="${x.it.id}">
+      <span class="ft ${esc(ext)}" aria-hidden="true">${badge}</span>
+      <span class="tt"><b>${esc(x.t)}${x.it.quick ? ' <span class="qtag">Quick action</span>' : ''}</b><small>${esc([x.m, where].filter(Boolean).join(' · '))}</small></span>
+      ${itemTools(x.it.id)}
+    </div>`;
+  }
+  const itemTools = id => `<span class="etools">
+      <button class="eb" type="button" data-act="item-edit" data-item="${id}" title="Edit">${icon('rename')}<span>Edit</span></button>
+      <button class="eb icon" type="button" data-act="item-up" data-item="${id}" title="Move up" aria-label="Move up">${icon('up')}</button>
+      <button class="eb icon" type="button" data-act="item-down" data-item="${id}" title="Move down" aria-label="Move down">${icon('down')}</button>
+      <button class="eb icon danger" type="button" data-act="item-del" data-item="${id}" title="Delete" aria-label="Delete">${icon('del')}</button></span>`;
+
   // ---------- views ----------
   function greeting() { const hr = new Date().getHours(); return hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'; }
+  // ---------- dashboard (the first page) ----------
+  let DASH = null, taskTab = 'mine', ALLTASKS = null;
+  const fmtDay = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  const ago = iso => { const s = (Date.now() - new Date(iso)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago'; if (s < 86400) return Math.floor(s / 3600) + ' h ago'; if (s < 7 * 86400) return Math.floor(s / 86400) + ' d ago'; return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); };
+  function dueInfo(t) {
+    if (!t.due) return '';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = new Date(t.due + 'T00:00:00'), days = Math.round((d - today) / 864e5);
+    const label = days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : days < 0 ? `Overdue · ${fmtDay(t.due)}` : `Due ${fmtDay(t.due)}`;
+    return `<span class="due${!t.done && days < 0 ? ' late' : !t.done && days <= 1 ? ' soon' : ''}">${icon('cal', 'i16')}${label}</span>`;
+  }
+  const linkAttrs = u => /^https?:/i.test(u) ? ` href="${esc(u)}" target="_blank" rel="noopener"` : ` href="${esc(u)}"`;
+  function taskRow(t, showWho) {
+    return `<li class="task${t.done ? ' done' : ''}" data-task="${t.id}">
+      <button class="tick" type="button" data-done="${t.id}" role="checkbox" aria-checked="${t.done}" aria-label="${t.done ? 'Mark as not done' : 'Mark as done'}: ${esc(t.title)}">${icon('tick')}</button>
+      <div class="tbody"><b>${esc(t.title)}</b>
+        ${t.notes ? `<p>${esc(t.notes)}</p>` : ''}
+        <div class="tmeta">${dueInfo(t)}${showWho ? `<span>${icon('person', 'i16')}${esc(t.assigneeName)}</span>` : t.createdBy && t.createdById !== ME.id ? `<span>From ${esc(t.createdBy)}</span>` : ''}${t.link ? `<a class="tlink"${linkAttrs(t.link)}>${icon('open', 'i16')}Open</a>` : ''}</div>
+      </div>
+      ${isAdminMe() ? `<span class="etools"><button class="eb icon" type="button" data-act="task-edit" data-task="${t.id}" title="Edit task" aria-label="Edit task">${icon('rename')}</button><button class="eb icon danger" type="button" data-act="task-del" data-task="${t.id}" title="Delete task" aria-label="Delete task">${icon('del')}</button></span>` : ''}
+    </li>`;
+  }
+  function tasksHtml() {
+    if (!DASH) return '<div class="dload"><span class="spinner"></span>Loading…</div>';
+    const all = taskTab === 'all' && ALLTASKS;
+    const list = all ? ALLTASKS : DASH.tasks;
+    const open = list.filter(t => !t.done).sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+    const done = list.filter(t => t.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '')).slice(0, all ? 30 : 10);
+    if (!list.length) return `<div class="dempty">${icon('tick', 'i big')}<b>${all ? 'No tasks yet' : 'You’re all caught up'}</b><span>${all ? 'Tasks you assign to people show here.' : 'Tasks assigned to you will show here.'}</span></div>`;
+    return `${open.length ? `<ul class="tasks">${open.map(t => taskRow(t, all)).join('')}</ul>` : `<div class="dempty small">${icon('tick', 'i big')}<b>Nothing left to do</b></div>`}
+      ${done.length ? `<details class="donebox"><summary>Done (${list.filter(t => t.done).length})</summary><ul class="tasks">${done.map(t => taskRow(t, all)).join('')}</ul></details>` : ''}`;
+  }
+  function newsHtml() {
+    if (!DASH) return '<div class="dload"><span class="spinner"></span>Loading…</div>';
+    if (!DASH.news.length) return `<div class="dempty">${icon('megaphone', 'i big')}<b>No announcements</b><span>${isAdminMe() ? 'Post one to share news with everyone.' : 'Company news will show here.'}</span></div>`;
+    return `<ul class="news">${DASH.news.map(n => `<li class="ann${n.pinned ? ' pinned' : ''}">
+      <div class="ahead"><b>${esc(n.title)}</b>${isAdminMe() ? `<span class="etools"><button class="eb icon" type="button" data-act="news-edit" data-news="${n.id}" title="Edit" aria-label="Edit announcement">${icon('rename')}</button><button class="eb icon danger" type="button" data-act="news-del" data-news="${n.id}" title="Delete" aria-label="Delete announcement">${icon('del')}</button></span>` : ''}</div>
+      ${n.body ? `<p>${esc(n.body)}</p>` : ''}
+      <div class="tmeta">${n.pinned ? `<span class="pin">${icon('pin', 'i16')}Pinned</span>` : ''}<span>${esc(n.by)} · ${ago(n.at)}</span>${n.link ? `<a class="tlink"${linkAttrs(n.link)}>${icon('open', 'i16')}Read more</a>` : ''}</div>
+    </li>`).join('')}</ul>`;
+  }
+  function paintDash() {
+    const t = $('#dTasks'), n = $('#dNews'); if (!t || !n) return;
+    t.innerHTML = tasksHtml(); n.innerHTML = newsHtml();
+    const c = $('#dTaskCount'); if (c && DASH) { const k = DASH.tasks.filter(x => !x.done).length; c.textContent = k ? k : ''; c.hidden = !k; }
+    document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === taskTab));
+  }
+  async function loadDash() {
+    try {
+      const r = await fetch('/api/dashboard'); if (r.status === 401) return toLogin();
+      DASH = await r.json();
+      if (taskTab === 'all' && isAdminMe()) { const a = await fetch('/api/admin/tasks'); if (a.ok) ALLTASKS = (await a.json()).tasks; }
+    } catch { if (!DASH) { const t = $('#dTasks'); if (t) t.innerHTML = `<div class="bar-msg error">${icon('err')}<div>Couldn’t load your tasks. Check your connection.</div></div>`; return; } }
+    paintDash();
+  }
+  async function toggleTask(id) {
+    const find = l => (l || []).find(t => t.id === id);
+    const t = find(DASH && DASH.tasks) || find(ALLTASKS); if (!t) return;
+    const done = !t.done;
+    [find(DASH.tasks), find(ALLTASKS)].forEach(x => { if (x) { x.done = done; x.doneAt = done ? new Date().toISOString() : null; } });
+    paintDash();
+    try {
+      const r = await fetch(`/api/tasks/${id}/done`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ done }) });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'That didn’t save.');
+      if (done) toast(`${icon('check')}<span>Done: ${esc(t.title)}</span>`, 'ok');
+    } catch (e) { toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); loadDash(); }
+  }
   function viewHome() {
     const fv = favs.map(k => ITEMS.find(x => x.key === k)).filter(Boolean);
-    const nf = ITEMS.filter(x => x.type === 'form').length, nd = ITEMS.filter(x => x.type === 'doc').length;
-    return `<div class="pane-inner">
-      <div class="hello"><div><h1 class="title">${greeting()}</h1><p class="subtitle">Forms and documents for your day-to-day work: ${nf} forms and ${nd} documents across ${HOME.length} departments.</p></div></div>
-      <div class="quick">${QUICK.map(([t, id]) => `<a class="qa" href="#form/${id}"><span class="tile">${icon('bolt')}</span><span><b>${esc(t)}</b><small>${esc((formDept[id] || {}).dept ? formDept[id].dept.name : 'Form')}</small></span></a>`).join('')}</div>
-      <h2 class="section">Apps</h2>
-      <div class="quick" style="margin-top:0"><a class="qa" href="/carbon/"><span class="tile">${icon('leaf')}</span><span><b>Carbon platform</b><small>Company and stand footprints, targets and reports</small></span></a></div>
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    setTimeout(loadDash);
+    const admin = isAdminMe();
+    return `<section class="dash" aria-label="Dashboard">
+      <div class="dhero"><p class="ddate">${esc(today)}</p><h1 class="dhello">${greeting()}, ${esc(ME ? ME.name : '')}</h1></div>
+      <div class="dgrid">
+        <section class="dcard" aria-labelledby="dTasksH">
+          <header class="dch"><h2 id="dTasksH">${icon('tick')}My tasks <span class="badge" id="dTaskCount" hidden></span></h2>
+            ${admin ? `<button class="btn subtle small" type="button" data-act="task-add">${icon('add')}Assign a task</button>` : ''}</header>
+          ${admin ? `<div class="dtabs" role="tablist"><button type="button" role="tab" data-tab="mine" aria-selected="${taskTab === 'mine'}">Mine</button><button type="button" role="tab" data-tab="all" aria-selected="${taskTab === 'all'}">Everyone’s</button></div>` : ''}
+          <div id="dTasks" class="dbody">${tasksHtml()}</div>
+        </section>
+        <section class="dcard" aria-labelledby="dNewsH">
+          <header class="dch"><h2 id="dNewsH">${icon('megaphone')}Announcements</h2>
+            ${admin ? `<button class="btn subtle small" type="button" data-act="news-add">${icon('add')}Post</button>` : ''}</header>
+          <div id="dNews" class="dbody">${newsHtml()}</div>
+        </section>
+      </div>
+    </section>
+    <div class="pane-inner dash-rest">
+      ${ITEMS.some(x => x.it.quick) ? `<h2 class="section" style="margin-top:4px">Quick actions</h2><div class="quick" style="margin-top:0">${ITEMS.filter(x => x.it.quick).map(x => `<a class="qa" href="${esc(x.url)}"><span class="tile">${icon('bolt')}</span><span><b>${esc(x.t)}</b><small>${esc(x.dept.name)}</small></span></a>`).join('')}</div>` : ''}
+      ${ITEMS.some(x => x.type === 'app') ? `<h2 class="section">Apps</h2>
+      <div class="quick" style="margin-top:0">${ITEMS.filter(x => x.type === 'app').map(x => `<a class="qa" href="${esc(x.url)}"><span class="tile">${icon('leaf')}</span><span><b>${esc(x.t)}</b><small>${esc(x.m || x.dept.name)}</small></span></a>`).join('')}</div>` : ''}
       ${fv.length ? `<h2 class="section">Favourites <span class="n">${fv.length}</span></h2><div class="list">${fv.map(x => row(x, { where: true })).join('')}</div>` : ''}
       <h2 class="section">Departments</h2>
-      <div class="depts">${HOME.map(id => { const d = byDept[id], c = { form: 0, doc: 0, link: 0 }; ITEMS.filter(x => x.dept === d && c[x.type] != null).forEach(x => c[x.type]++);
+      <div class="depts">${HOME.map(d => { const c = { form: 0, doc: 0, link: 0 }; ITEMS.filter(x => x.dept === d && c[x.type] != null).forEach(x => c[x.type]++);
         const parts = [c.form && `${c.form} form${c.form > 1 ? 's' : ''}`, c.doc && `${c.doc} document${c.doc > 1 ? 's' : ''}`, c.link && `${c.link} link${c.link > 1 ? 's' : ''}`].filter(Boolean);
-        return `<a class="dept" href="#d/${d.id}"><span class="cat" style="background:${d.c}">${icon('folder')}</span><span><b>${esc(d.name)}</b><small>${parts.join(' · ')}</small></span></a>`; }).join('')}</div>
+        return `<a class="dept" href="#d/${d.id}"><span class="cat" style="background:${d.color}">${icon('folder')}</span><span><b>${esc(d.name)}</b><small>${parts.join(' · ')}</small></span></a>`; }).join('')}</div>
     </div>`;
   }
   function viewFav() {
@@ -145,20 +272,37 @@
       <div style="margin-top:16px" class="list">${fv.length ? fv.map(x => row(x, { where: true })).join('') : `<div class="empty">No favourites yet. Select the star next to a form or document to add it.</div>`}</div></div>`;
   }
   function viewDept(d) {
+    const sections = d.sections.map((s, si) => {
+      const rows = ITEMS.filter(x => x.sec === s);
+      let body = '', run = [];
+      const flush = () => { if (run.length) { body += `<div class="list">${run.map(x => row(x)).join('')}</div>`; run = []; } };
+      for (const it of s.items) {
+        if (it.kind === 'note') { flush(); body += EDIT ? `<div class="note editing" data-item="${it.id}"><div class="ntext">${it.html || '<p><i>Empty note</i></p>'}</div>${itemTools(it.id)}</div>` : `<div class="note">${it.html}</div>`; }
+        else run.push(rows.find(x => x.it === it));
+      }
+      flush();
+      const head = EDIT
+        ? `<div class="sechead"><h2 class="section">${s.title ? esc(s.title) : '<i>Untitled section</i>'}${rows.length ? ` <span class="n">${rows.length}</span>` : ''}</h2>
+            <span class="etools"><button class="eb" type="button" data-act="sec-rename" data-sec="${s.id}">${icon('rename')}<span>Rename</span></button>
+            <button class="eb icon" type="button" data-act="sec-up" data-sec="${s.id}" aria-label="Move section up" title="Move up"${si === 0 ? ' disabled' : ''}>${icon('up')}</button>
+            <button class="eb icon" type="button" data-act="sec-down" data-sec="${s.id}" aria-label="Move section down" title="Move down"${si === d.sections.length - 1 ? ' disabled' : ''}>${icon('down')}</button>
+            <button class="eb icon danger" type="button" data-act="sec-del" data-sec="${s.id}" aria-label="Delete section" title="Delete section">${icon('del')}</button></span></div>`
+        : (s.title ? `<h2 class="section">${esc(s.title)}${rows.length ? ` <span class="n">${rows.length}</span>` : ''}</h2>` : '');
+      const add = EDIT ? `<button class="addrow" type="button" data-act="item-add" data-sec="${s.id}">${icon('add')}Add to ${s.title ? '“' + esc(s.title) + '”' : 'this section'}</button>` : '';
+      return `<section class="dsec" data-sec="${s.id}">${head}${body}${add}</section>`;
+    }).join('');
     return `<div class="pane-inner">
       <div class="crumbs"><a href="#home">Home</a>${icon('chev', 'i16')}<span>${esc(d.name)}</span></div>
-      <h1 class="title" style="display:flex;align-items:center;gap:10px"><span class="cat" style="background:${d.c};width:14px;height:14px"></span>${esc(d.name)}</h1>
-      ${d.g.map(([sec, items]) => {
-        const rows = ITEMS.filter(x => x.dept === d && x.sec === sec);
-        const notes = items.filter(i => i[0] === 'n').map(i => `<div class="note">${i[1]}</div>`).join('');
-        return `<h2 class="section">${esc(sec)}${rows.length ? ` <span class="n">${rows.length}</span>` : ''}</h2>${notes}${rows.length ? `<div class="list">${rows.map(x => row(x)).join('')}</div>` : ''}`;
-      }).join('')}
+      <div class="dhead"><h1 class="title" style="display:flex;align-items:center;gap:10px"><span class="cat" style="background:${d.color};width:14px;height:14px"></span>${esc(d.name)}</h1>
+        ${EDIT ? `<span class="etools"><button class="eb" type="button" data-act="dept-rename" data-dept="${d.id}">${icon('rename')}<span>Rename</span></button><button class="eb" type="button" data-act="dept-color" data-dept="${d.id}">${icon('palette')}<span>Colour</span></button><button class="eb danger" type="button" data-act="dept-del" data-dept="${d.id}">${icon('del')}<span>Delete folder</span></button></span>` : ''}</div>
+      ${d.sections.length ? sections : `<div class="empty">This folder is empty.${EDIT ? '' : ''}</div>`}
+      ${EDIT ? `<button class="addrow big" type="button" data-act="sec-add" data-dept="${d.id}">${icon('add')}Add a section</button>` : ''}
     </div>`;
   }
   let filter = 'all';
   function viewSearch(term) {
     const t = term.toLowerCase();
-    let hits = ITEMS.filter(x => x.type !== 'page' && (x.t + ' ' + x.m + ' ' + x.sec + ' ' + x.dept.name + ' ' + (KIND[x.ext] || '')).toLowerCase().includes(t));
+    let hits = ITEMS.filter(x => x.type !== 'page' && (x.t + ' ' + x.m + ' ' + x.sec.title + ' ' + x.dept.name + ' ' + (KIND[x.ext] || '')).toLowerCase().includes(t));
     const n = { all: hits.length, form: hits.filter(x => x.type === 'form').length, doc: hits.filter(x => x.type === 'doc').length, link: hits.filter(x => x.type === 'link').length };
     if (filter !== 'all') hits = hits.filter(x => x.type === filter);
     hits.sort((a, b) => b.t.toLowerCase().includes(t) - a.t.toLowerCase().includes(t));
@@ -169,31 +313,58 @@
   }
 
   // ---------- router ----------
-  let formCtl = null;
+  let formCtl = null, ED = null, lastHash = location.hash;
   async function route() {
     const term = q.value.trim();
     const hash = decodeURIComponent((location.hash || '#home').slice(1));
+    if (ED && ED.canLeave && !hash.startsWith('edit-form/') && !ED.canLeave()) { history.replaceState(null, '', lastHash || '#home'); return; }
+    lastHash = location.hash;
     $('#qClear').hidden = !term;
+    document.body.classList.toggle('editing', EDIT);
     if (formCtl && !hash.startsWith('form/')) { formCtl.destroy(); formCtl = null; }
     if (term) { renderFolders(''); pane.innerHTML = viewSearch(term); return; }
+    if (hash.startsWith('edit-form/') && isAdminMe()) {
+      const id = hash.slice(10);
+      renderFolders(formDept[id] ? formDept[id].dept.id : '');
+      const ed = await editor(); return ed.builder(id);
+    }
     if (hash.startsWith('form/')) {
       const id = hash.slice(5);
       renderFolders(formDept[id] ? formDept[id].dept.id : '');
       if (formCtl && formCtl.id === id) return;
-      if (!Object.keys(FORMS).length) await loadForms();
-      const def = FORMS[id];
+      let def;
+      try { def = await getForm(id); } catch (e) { if (e.message !== 'signed out') pane.innerHTML = `<div class="pane-inner"><div class="bar-msg error">${icon('err')}<div>The form could not be loaded. Check your connection and refresh the page.</div></div></div>`; return; }
       if (!def) { pane.innerHTML = `<div class="pane-inner"><div class="empty">This form could not be found. It may have been removed.<br><br><a class="btn" href="#home">Go to Home</a></div></div>`; return; }
       formCtl = renderForm(def); pane.scrollTop = 0; return;
     }
     if (hash.startsWith('d/') && byDept[hash.slice(2)]) { const d = byDept[hash.slice(2)]; renderFolders(d.id); pane.innerHTML = viewDept(d); }
     else if (hash === 'fav') { renderFolders('fav'); pane.innerHTML = viewFav(); }
     else { renderFolders('home'); pane.innerHTML = viewHome(); }
+    if (EDIT) {
+      const jot = ITEMS.filter(x => x.type === 'doc' && /jotform\.com/i.test(x.url)).length;
+      pane.prepend(h('div', { class: 'editbar', html: `${icon('rename')}<span><b>Editing the hub.</b> Changes save straight away and show for everyone.</span>` },
+        jot ? h('button', { class: 'btn subtle', type: 'button', 'data-act': 'import-docs', title: `${jot} documents are still stored on Jotform` }, `Copy ${jot} Jotform documents here`) : '',
+        h('button', { class: 'btn', type: 'button', onclick: () => setEdit(false) }, 'Done')));
+    }
     pane.scrollTop = 0;
   }
-  async function loadForms() {
-    try { const r = await fetch('/forms.json'); if (r.status === 401 || r.redirected) { toLogin(); return; } FORMS = Object.fromEntries((await r.json()).map(f => [f.id, f])); }
-    catch { pane.innerHTML = `<div class="pane-inner"><div class="bar-msg error">${icon('err')}<div>The forms could not be loaded. Check your connection and refresh the page.</div></div></div>`; throw new Error('forms'); }
+  function setEdit(on) {
+    EDIT = !!on; store.set('wsh-edit', EDIT);
+    const b = $('#editBtn'); if (b) { b.setAttribute('aria-pressed', EDIT); b.classList.toggle('on', EDIT); }
+    if (formCtl) { formCtl.destroy(); formCtl = null; }
+    route();
   }
+  async function editor() {
+    if (ED) return ED;
+    if (!window.initHubEditor) await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = '/editor.js'; sc.onload = ok; sc.onerror = no; document.head.append(sc); });
+    ED = window.initHubEditor({
+      get hub() { return HUB; }, get byDept() { return byDept; }, get items() { return ITEMS; }, get formDept() { return formDept; },
+      pane, folders, h, icon, esc, toast, route, setHub, getForm, loadFormList, get formList() { return FORM_LIST; }, FORMS, toLogin, renderFolders: () => renderFolders(activeFolder),
+      closeMenu, openAt: placeMenu, loadDash, get dash() { return DASH; }, get allTasks() { return ALLTASKS; }, get me() { return ME; }
+    });
+    return ED;
+  }
+  let EDIT = false;
   window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#form/')) q.value = ''; filter = 'all'; toggleMenu(false); route(); });
   q.addEventListener('input', () => { filter = 'all'; route(); });
   $('#qClear').addEventListener('click', () => { q.value = ''; route(); q.focus(); });
@@ -201,7 +372,18 @@
     if (e.key === '/' && !/input|textarea|select/i.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); }
     if (e.key === 'Escape' && document.activeElement === q) { q.value = ''; route(); }
   });
+  const onAct = async e => {
+    const b = e.target.closest('[data-act]'); if (!b || !isAdminMe()) return false;
+    e.preventDefault(); e.stopPropagation();
+    const ed = await editor(); ed.act(b.dataset.act, b.dataset, b); return true;
+  };
+  folders.addEventListener('click', e => { if (e.target.closest('[data-act]')) onAct(e); }, true);
   pane.addEventListener('click', e => {
+    if (e.target.closest('[data-act]')) { onAct(e); return; }
+    const dn = e.target.closest('[data-done]');
+    if (dn) { toggleTask(dn.dataset.done); return; }
+    const tb = e.target.closest('[data-tab]');
+    if (tb) { taskTab = tb.dataset.tab; if (taskTab === 'all' && !ALLTASKS) { $('#dTasks').innerHTML = tasksHtml(); loadDash(); } paintDash(); return; }
     const s = e.target.closest('[data-fav]');
     if (s) {
       const k = s.dataset.fav; favs = favs.includes(k) ? favs.filter(x => x !== k) : [...favs, k]; store.set('wsh-favs', favs);
@@ -228,69 +410,44 @@
   }
   function closeMenu() { if (menu) { menu.remove(); menu = null; document.removeEventListener('pointerdown', outside, true); } }
   function outside(e) { if (menu && !menu.contains(e.target)) closeMenu(); }
-  function openMenu(a, x, y) {
-    closeMenu();
-    const d = byDept[a.dataset.dept];
-    const item = (ic, label, fn) => h('button', { class: 'mi', type: 'button', role: 'menuitem', html: icon(ic) + `<span>${esc(label)}</span>`, onclick: () => { closeMenu(); fn(); } });
-    menu = h('div', { class: 'ctxmenu', role: 'menu', 'aria-label': d.name + ' options' },
-      item('folder', 'Open', () => { location.hash = '#d/' + d.id; }),
-      item('rename', 'Rename', () => startRename(d.id)),
-      d.name !== d.orig ? item('undo', `Reset name to “${d.orig}”`, () => saveName(d.id, '')) : null);
-    document.body.append(menu);
-    const r = a.getBoundingClientRect();
-    if (!x && !y) { x = r.left + 24; y = r.bottom; }
-    const mw = menu.offsetWidth, mh = menu.offsetHeight;
-    menu.style.left = Math.max(8, Math.min(x, innerWidth - mw - 8)) + 'px';
-    menu.style.top = Math.max(8, Math.min(y, innerHeight - mh - 8)) + 'px';
-    menu.querySelector('.mi').focus();
+  function placeMenu(m, x, y, anchor) {
+    document.body.append(m);
+    if (anchor && !x && !y) { const r = anchor.getBoundingClientRect(); x = r.left + 24; y = r.bottom; }
+    m.style.left = Math.max(8, Math.min(x, innerWidth - m.offsetWidth - 8)) + 'px';
+    m.style.top = Math.max(8, Math.min(y, innerHeight - m.offsetHeight - 8)) + 'px';
+    const first = m.querySelector('.mi'); if (first) first.focus();
+    menu = m;
     setTimeout(() => document.addEventListener('pointerdown', outside, true));
-    menu.addEventListener('keydown', e => {
-      const items = [...menu.querySelectorAll('.mi')], i = items.indexOf(document.activeElement);
-      if (e.key === 'Escape') { e.preventDefault(); closeMenu(); a.focus(); }
+    m.addEventListener('keydown', e => {
+      const items = [...m.querySelectorAll('.mi:not([disabled])')], i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(); if (anchor) anchor.focus(); }
       if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
       if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
       if (e.key === 'Tab') closeMenu();
     });
   }
-  async function startRename(id) {
-    if (!(await isAdminUser())) {
-      toast(`${icon('info')}<span>Only admins can rename folders, because the new name shows for everyone.</span>`);
-      return;
-    }
-    const a = folders.querySelector(`.folder[data-dept="${id}"]`); if (!a) return;
-    const lbl = a.querySelector('.lbl'), d = byDept[id];
-    const input = h('input', { class: 'rename', value: d.name, maxlength: '60', 'aria-label': 'New name for ' + d.name });
-    lbl.replaceWith(input); input.focus(); input.select();
-    let done = false;
-    const finish = save => { if (done) return; done = true; const v = input.value.trim(); if (save && v && v !== d.name) saveName(id, v === d.orig ? '' : v); else renderFolders(activeFolder); };
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') { e.preventDefault(); finish(false); } e.stopPropagation(); });
-    input.addEventListener('blur', () => finish(true));
-    input.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
-  }
-  async function saveName(id, name) {
-    try {
-      const r = await fetch('/api/admin/dept-names/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-      const out = await r.json().catch(() => ({}));
-      if (r.status === 401) { toLogin(); return; }
-      if (!r.ok) throw new Error(out.error || 'The new name could not be saved.');
-      applyNames(out); route();
-      toast(`${icon('check')}<span>${name ? `Renamed to “${esc(name)}”.` : `Name reset to “${esc(byDept[id].orig)}”.`} Everyone will see this.</span>`, 'ok');
-    } catch (e) { renderFolders(activeFolder); toast(`${icon('err')}<span>${esc(e.message)}</span>`, 'error'); }
+  async function openMenu(a, x, y) {
+    closeMenu();
+    if (isAdminMe()) { const ed = await editor(); return ed.deptMenu(a.dataset.dept, x, y, a); }
+    const d = byDept[a.dataset.dept];
+    const m = h('div', { class: 'ctxmenu', role: 'menu', 'aria-label': d.name + ' options' },
+      h('button', { class: 'mi', type: 'button', role: 'menuitem', html: icon('folder') + '<span>Open</span>', onclick: () => { closeMenu(); location.hash = '#d/' + d.id; } }));
+    placeMenu(m, x, y, a);
   }
   folders.addEventListener('contextmenu', e => {
     const a = e.target.closest('.folder[data-dept]'); if (!a) return;
+    if (!isAdminMe()) return;
     e.preventDefault(); openMenu(a, e.clientX, e.clientY);
   });
   // long-press on touch screens
   let press = null, pressed = false;
   folders.addEventListener('pointerdown', e => {
-    const a = e.target.closest('.folder[data-dept]'); if (!a || e.pointerType !== 'touch') return;
+    const a = e.target.closest('.folder[data-dept]'); if (!a || e.pointerType !== 'touch' || !isAdminMe()) return;
     press = setTimeout(() => { pressed = true; openMenu(a, e.clientX, e.clientY); }, 550);
   });
   ['pointerup', 'pointercancel', 'pointermove'].forEach(t => folders.addEventListener(t, () => clearTimeout(press)));
   folders.addEventListener('click', e => { if (pressed) { e.preventDefault(); pressed = false; } }, true);
   addEventListener('resize', closeMenu); pane.addEventListener('scroll', closeMenu);
-  fetch('/api/dept-names').then(r => r.json()).then(m => { if (Object.keys(m).length) { applyNames(m); route(); } }).catch(() => { });
 
   // ---------- account menu, change password ----------
   const meBtn = $('#meBtn');
@@ -357,6 +514,8 @@
     } catch { return true; }
     meBtn.textContent = initials(ME.name); meBtn.hidden = false; meBtn.title = `${ME.name} (${ME.role === 'admin' ? 'Admin' : 'Viewer'})`;
     $('#inboxLink').hidden = !isAdminMe();
+    const eb = $('#editBtn'); if (eb) eb.hidden = !isAdminMe();
+    if (isAdminMe()) { EDIT = !!store.get('wsh-edit', false); if (eb) { eb.setAttribute('aria-pressed', EDIT); eb.classList.toggle('on', EDIT); eb.onclick = () => setEdit(!EDIT); } }
     const qs = new URLSearchParams(location.search);
     if (qs.get('account') && ME.passwordLogin !== false) changePassword();
     if (qs.get('notice') === 'admin-only') toast(`${icon('info')}<span>That page is for admins. Ask an admin if you need access.</span>`);
@@ -385,6 +544,7 @@
     root.append(
       h('div', { class: 'crumbs', html: `<a href="#home">Home</a>${icon('chev', 'i16')}${info ? `<a href="#d/${info.dept.id}">${esc(info.dept.name)}</a>${icon('chev', 'i16')}` : ''}<span>${esc(def.name)}</span>` }),
       h('div', { class: 'form-head' },
+        isAdminMe() ? h('a', { class: 'btn editform', href: '#edit-form/' + def.id, html: icon('rename') + 'Edit form' }) : null,
         h('h1', { class: 'title' }, titleField ? (titleField.label || def.name) : def.name),
         titleField && titleField.sub ? h('p', { class: 'subtitle' }, titleField.sub) : null)
     );
@@ -684,5 +844,9 @@
     return { id: def.id, destroy() { } };
   }
 
-  loadMe().then(ok => { if (ok) route(); });
+  loadMe().then(async ok => {
+    if (!ok) return;
+    try { await loadHub(); } catch (e) { if (e.message !== 'signed out') pane.innerHTML = `<div class="pane-inner"><div class="bar-msg error">${icon('err')}<div>The hub couldn’t be loaded. Check your connection and refresh the page.</div></div></div>`; return; }
+    route();
+  });
 })();

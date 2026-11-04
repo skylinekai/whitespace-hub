@@ -96,15 +96,25 @@ Each email shows every answer and attaches the uploaded files and signature (whe
 
 **Different recipients per form:** edit `notify.json`. Every form is listed by name; add addresses to its `emails` list. Forms left empty go to `NOTIFY_EMAILS`.
 
-## Changing content
+## The dashboard
 
-- **Department folder names:** right-click a department in the hub's folder pane (or long-press on a phone) and choose **Rename**. Admins only; the new name shows for everyone. **Reset name** puts the original back.
+The first page everyone sees. It welcomes them by their full name over the showroom photo (`public/dashboard-bg.jpg`; replace that file to change it), with **My tasks** on the left and **Announcements** on the right.
 
-- **Hub sections, documents and links:** `public/hub-data.js`. Each item is one line:
-  `['f', 'Title', '<form id>']` form · `['d', 'Title', '~File.pdf']` document · `['l', 'Title', 'https://…']` link · `['n', '<p>Text</p>']` note.
-- **Form questions:** `public/forms.json`. Each form has `fields` (id, type, label, required, options) and `rules` (show or hide fields based on answers). Changing a label or adding an option is a one-line edit. Old submissions keep the questions they were sent with.
+- **Tasks:** admins select **Assign a task**, choose a person, and add an optional due date, notes and a link (a web address or one of the hub's forms). If email is set up, the person gets an email. Everyone ticks off their own tasks. Admins can switch to **Everyone's** to see all tasks, and edit or delete any of them.
+- **Announcements:** admins select **Post**. Pinned announcements stay at the top. Everyone sees them.
+- **Full names:** set them in **Users → Rename**. People who sign in with Microsoft get their full name from Microsoft 365 automatically if only a first name is stored. `INITIAL_ADMIN_NAME` sets the first admin's name.
 
-Commit and push; Render redeploys automatically.
+## Changing content (admins)
+
+Select **Edit** in the top bar. Everything saves straight away and shows for everyone. Select **Done** when you're finished.
+
+- **Folders:** **New folder** in the folder pane, or the **⋯** next to a folder (or right-click it) to rename it, change its colour, move it up or down, move it between Departments and More, or delete it.
+- **Sections:** rename, reorder, delete, or **Add a section** at the bottom of a folder.
+- **Items:** **Add to …** under any section. An item can be a form (an existing one or a new one), a document (upload a file up to 50 MB, or link to SharePoint or OneDrive), a link, a note, or a shortcut to another folder. Each item has edit, move and delete buttons. Ticking **Show as a quick action** puts a form on the dashboard.
+- **Forms:** **Edit form** on any form page opens the form builder. There you can add, reorder, duplicate and delete questions (22 types), set options and required fields, and add show or hide rules based on other answers. The builder also has **Make a copy** and **Delete form**. Past submissions keep the answers they were sent with.
+- **Documents still on Jotform:** in Edit mode, **Copy N Jotform documents here** downloads them into the hub so they keep working after Jotform is closed.
+
+Content, forms, uploaded files, tasks and announcements are stored in the database, not in the code. Redeploying doesn't reset them. `seed/` only fills an empty database the first time.
 
 ## Good to know
 
