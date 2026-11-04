@@ -9,6 +9,8 @@ const makeStore = require('./lib/store');
 const { notify, taskAssigned } = require('./lib/mail');
 const { makeBoard, EMOJIS } = require('./lib/board');
 const { makeTodo } = require('./lib/mstodo');
+const { makeKnowledge } = require('./lib/knowledge');
+const { makeAssistant } = require('./lib/assistant');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -32,6 +34,10 @@ const formIndex = () => Object.values(byId).map(f => ({ id: f.id, name: f.name }
 const store = makeStore();
 const board = makeBoard(store);
 let todo = null;   // set up once the session secret is known
+const knowledge = makeKnowledge({ store, getHub: () => HUB, getForms: () => byId, board, allowHosts: (process.env.IMPORT_DOC_HOSTS || '').split(',').map(s => s.trim()).filter(h => h === 'localhost') });
+const assistant = makeAssistant(knowledge);
+let kbTimer = null;
+const kbSoon = (ms = 15e3) => { knowledge.markDirty(); clearTimeout(kbTimer); kbTimer = setTimeout(() => knowledge.refresh().catch(() => {}), ms); kbTimer.unref && kbTimer.unref(); };
 const MAX_FILE = 25 * 1024 * 1024, MAX_BODY = 200 * 1024 * 1024;
 
 // ---------- helpers ----------
@@ -309,6 +315,7 @@ async function saveHub(doc, by) {
   const clean = Content.cleanHub(doc, new Set(Object.keys(byId)));
   HUB = Object.assign({ version: (HUB.version || 0) + 1, updatedAt: new Date().toISOString(), updatedBy: by }, clean);
   await store.setSetting('hub', HUB);
+  kbSoon();
   tidyDocs().catch(e => console.error('[content] tidy-up failed:', e.message));
   return HUB;
 }
@@ -593,6 +600,30 @@ async function route(req, res) {
     }
   }
 
+  // ----- Helpful HR -----
+  if (p === '/api/assistant' && m === 'POST') {
+    if (limited(req, 'ai:' + user.id, 30, 10 * 60e3)) return json(res, 429, { error: 'You’ve asked a lot of questions in a short time. Wait a few minutes and try again.' });
+    const b = await readJson(req);
+    const question = String(b.question || '').trim().slice(0, 1000);
+    if (!question) return json(res, 400, { error: 'Type a question.' });
+    try { return json(res, 200, await assistant.answer(question, Array.isArray(b.history) ? b.history.slice(-8) : [], user)); }
+    catch (e) {
+      console.error('[helpful-hr] answer failed:', e.message);
+      const why = e.status === 401 ? 'The AI key isn’t valid. An admin needs to check ANTHROPIC_API_KEY in Render.' : e.status === 429 || e.status === 529 ? 'The AI service is busy. Try again in a minute.' : 'Something went wrong getting an answer. Try again in a minute.';
+      return json(res, 502, { error: why });
+    }
+  }
+  if (p === '/api/assistant/status' && m === 'GET') {
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can see this.' });
+    return json(res, 200, Object.assign({ ai: assistant.aiOn, model: assistant.model }, await knowledge.status()));
+  }
+  if (p === '/api/admin/assistant/refresh' && m === 'POST') {
+    if (!isAdmin(user)) return json(res, 403, { error: 'Only admins can do that.' });
+    knowledge.refresh(!!(await readJson(req)).all).catch(() => {});
+    return json(res, 202, { started: true });
+  }
+  if (m !== 'GET' && (p.startsWith('/api/admin/') || p.startsWith('/api/news'))) res.on('finish', () => knowledge.markDirty());
+
   // ----- the announcements board (everyone) -----
   if (p === '/api/news' && m === 'GET') {
     const drafts = url.searchParams.get('drafts') === '1' && isAdmin(user);
@@ -757,5 +788,5 @@ const server = http.createServer((req, res) => {
   route(req, res).catch(e => { console.error(e); if (!res.headersSent) json(res, 500, { error: 'Something went wrong on the server.' }); });
 });
 server.requestTimeout = 10 * 60e3;
-store.init().then(initAuth).then(initContent).then(() => { if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon(); }).then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
+store.init().then(initAuth).then(initContent).then(() => { if (!process.env.CARBON_URL && process.env.CARBON_AUTOSTART !== '0') startCarbon(); }).then(() => { setTimeout(() => knowledge.refresh().catch(e => console.error('[helpful-hr]', e)), 5000).unref(); }).then(() => server.listen(PORT, () => console.log(`Whitespace Hub on port ${PORT} (storage: ${store.kind}, email: ${process.env.SMTP_HOST ? 'on' : 'off'})`)))
   .catch(e => { console.error('Could not start storage:', e); process.exit(1); });

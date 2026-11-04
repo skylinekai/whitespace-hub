@@ -10,7 +10,8 @@ WORKDIR /app
 COPY package.json ./
 RUN SKIP_CARBON_PIP=1 npm install --omit=dev --no-audit --no-fund
 COPY carbon/requirements.txt carbon/requirements.txt
-RUN pip install --no-cache-dir -r carbon/requirements.txt
+COPY scripts/requirements.txt scripts/requirements.txt
+RUN pip install --no-cache-dir -r carbon/requirements.txt -r scripts/requirements.txt
 COPY . .
 
 ENV NODE_ENV=production \

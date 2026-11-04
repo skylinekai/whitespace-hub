@@ -25,6 +25,8 @@ services:
       - key: INITIAL_ADMIN_PASSWORD
         sync: false
       # Sign in with Microsoft (see README)
+      - key: ANTHROPIC_API_KEY   # Helpful HR's AI answers (leave blank for search-only)
+        sync: false
       - key: MS_TENANT_ID
         sync: false
       - key: MS_CLIENT_ID

@@ -87,6 +87,26 @@ One-time setup in Entra ID (the same app registration as sign-in):
 
 There's nothing to change in Render. Each person's connection is stored encrypted, and **Disconnect** removes it. Set `MS_TODO=off` to hide the feature. Due dates use UK time; set `TODO_TIMEZONE` to change that.
 
+## Helpful HR (the hub's assistant)
+
+The round **Helpful HR** button at the bottom right of every page opens a chat. Staff ask questions in their own words, such as "What does the expense policy say about subsistence in London?". Helpful HR answers **only from what's in the hub**:
+- the documents (PDF, Word, Excel and PowerPoint; uploaded or linked)
+- the forms and what they ask
+- folder notes
+- announcements
+
+Each answer shows numbered sources that open the document at the right page. If the hub doesn't cover something, it says so and suggests asking HR or a line manager.
+
+**Turn on AI answers:**
+1. Create an API key at console.anthropic.com (Settings → API keys).
+2. In Render → your service → **Environment**, add `ANTHROPIC_API_KEY`, then **Save, rebuild and deploy**.
+
+Without a key, Helpful HR still works but shows the most relevant passages instead of a written answer. `HELPFUL_HR_MODEL` changes the model (default `claude-haiku-5-5`).
+
+**What's sent to the AI:** only the question, the last few messages of that chat, and the hub passages that matched. Submissions, users and other personal data are never sent. Each person is limited to 30 questions per 10 minutes.
+
+**Keeping it up to date:** Helpful HR reads each document once, a few seconds after start-up and whenever the hub changes. Admins can open the chat's **⋯** menu → **What Helpful HR has read** to see how many documents it has read and which it couldn't (for example scanned images with no text, or links that need a sign-in), and to read everything again.
+
 ## If Carbon says it isn't available
 
 The page now says why. Check the **Logs** tab of the service in Render for lines starting with `[carbon]`.
